@@ -263,118 +263,190 @@ export default function Home() {
           </header>
 
           <section className={styles.section}>
-            <h2>Party Members</h2>
+            <h2>Combat Order</h2>
             <p className={styles.sectionDescription}>
-              Add each adventurer and their initiative roll.
+              Automatically sorted by initiative. Advance turns as combat
+              progresses.
             </p>
-            <form onSubmit={handlePartySubmit} className={styles.form}>
-              <div className={styles.formGrid}>
-                <label className={styles.inputGroup}>
-                  <span>Character Name</span>
-                  <input
-                    type="text"
-                    value={partyForm.name}
-                    onChange={(event) =>
-                      setPartyForm((prev) => ({
-                        ...prev,
-                        name: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. Lyra the Swift"
-                    required
-                  />
-                </label>
-                <label className={styles.inputGroup}>
-                  <span>Initiative</span>
-                  <input
-                    type="number"
-                    value={partyForm.initiative}
-                    onChange={(event) =>
-                      setPartyForm((prev) => ({
-                        ...prev,
-                        initiative: event.target.value,
-                      }))
-                    }
-                    placeholder="e.g. 17"
-                  />
-                </label>
-              </div>
-              <button type="submit" className={styles.primaryButton}>
-                Add Party Member
+            <div className={styles.combatControls}>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={advanceTurn}
+                disabled={combatOrder.length === 0}
+              >
+                Next Turn
               </button>
-            </form>
-            <div className={styles.importBox}>
-              <h3>Import from D&amp;D Beyond</h3>
-              <p className={styles.helperText}>
-                Paste a shareable character link or ID to pull in their initiative
-                automatically.
-              </p>
-              <form onSubmit={handleDndBeyondImport} className={styles.importForm}>
-                <label className={styles.inputGroup}>
-                  <span>Character URL or ID</span>
-                  <input
-                    type="text"
-                    value={dndBeyondIdentifier}
-                    onChange={(event) => setDndBeyondIdentifier(event.target.value)}
-                    placeholder="https://www.dndbeyond.com/characters/12345678"
-                  />
-                </label>
-                {dndBeyondError && (
-                  <p className={styles.errorMessage}>{dndBeyondError}</p>
-                )}
-                <button
-                  type="submit"
-                  className={styles.secondaryButton}
-                  disabled={
-                    isImportingDndBeyond || !dndBeyondIdentifier.trim()
-                  }
-                >
-                  {isImportingDndBeyond ? "Importing..." : "Import Character"}
-                </button>
-              </form>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={resetTurn}
+                disabled={combatOrder.length === 0}
+              >
+                Reset to Top
+              </button>
             </div>
-            {partyMembers.length > 0 && (
-              <ul className={styles.cardList}>
-                {partyMembers.map((member) => (
-                  <li key={member.id} className={styles.card}>
+            {combatOrder.length === 0 ? (
+              <p className={styles.emptyState}>
+                Add party members and enemies to build the initiative order.
+              </p>
+            ) : (
+              <ol className={styles.combatList}>
+                {combatOrder.map((combatant, index) => (
+                  <li
+                    key={combatant.id}
+                    className={`${styles.combatant} ${
+                      index === highlightedIndex ? styles.activeCombatant : ""
+                    }`}
+                  >
                     <div>
-                      <h3>{member.name}</h3>
+                      <h3>
+                        {combatant.name}
+                        <span className={styles.tag}>
+                          {combatant.type === "party" ? "Party" : "Enemy"}
+                        </span>
+                      </h3>
                       <p className={styles.statLine}>
-                        Initiative: <strong>{member.initiative}</strong>
+                        Initiative: <strong>{combatant.initiative}</strong>
                       </p>
-                      {member.source === "dndbeyond" && (
-                        <span className={styles.sourceTag}>Imported from D&amp;D Beyond</span>
-                      )}
-                      {member.classSummary && (
-                        <p className={styles.statLine}>
-                          Class: <strong>{member.classSummary}</strong>
-                        </p>
-                      )}
-                      {typeof member.level === "number" && member.level > 0 && (
-                        <p className={styles.statLine}>
-                          Level: <strong>{member.level}</strong>
-                        </p>
-                      )}
-                      {member.playerName && (
-                        <p className={styles.statLine}>
-                          Player: <strong>{member.playerName}</strong>
-                        </p>
-                      )}
                     </div>
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      onClick={() => removePartyMember(member.id)}
-                    >
-                      Remove
-                    </button>
+                    {combatant.type === "enemy" && (
+                      <div className={styles.combatantDetails}>
+                        {combatant.armorClass && (
+                          <span>AC {combatant.armorClass}</span>
+                        )}
+                        {combatant.hitPoints && (
+                          <span>HP {combatant.hitPoints}</span>
+                        )}
+                        {combatant.attacks.length > 0 && (
+                          <span>
+                            {combatant.attacks
+                              .map((attack) => attack.name)
+                              .join(", ")}
+                          </span>
+                        )}
+                      </div>
+                    )}
                   </li>
                 ))}
-              </ul>
+              </ol>
             )}
           </section>
 
-          <section className={styles.section}>
+          <div className={styles.sectionColumns}>
+            <section className={styles.section}>
+              <h2>Party Members</h2>
+              <p className={styles.sectionDescription}>
+                Add each adventurer and their initiative roll.
+              </p>
+              <form onSubmit={handlePartySubmit} className={styles.form}>
+                <div className={styles.formGrid}>
+                  <label className={styles.inputGroup}>
+                    <span>Character Name</span>
+                    <input
+                      type="text"
+                      value={partyForm.name}
+                      onChange={(event) =>
+                        setPartyForm((prev) => ({
+                          ...prev,
+                          name: event.target.value,
+                        }))
+                      }
+                      placeholder="e.g. Lyra the Swift"
+                      required
+                    />
+                  </label>
+                  <label className={styles.inputGroup}>
+                    <span>Initiative</span>
+                    <input
+                      type="number"
+                      value={partyForm.initiative}
+                      onChange={(event) =>
+                        setPartyForm((prev) => ({
+                          ...prev,
+                          initiative: event.target.value,
+                        }))
+                      }
+                      placeholder="e.g. 17"
+                    />
+                  </label>
+                </div>
+                <button type="submit" className={styles.primaryButton}>
+                  Add Party Member
+                </button>
+              </form>
+              <div className={styles.importBox}>
+                <h3>Import from D&amp;D Beyond</h3>
+                <p className={styles.helperText}>
+                  Paste a shareable character link or ID to pull in their initiative
+                  automatically.
+                </p>
+                <form onSubmit={handleDndBeyondImport} className={styles.importForm}>
+                  <label className={styles.inputGroup}>
+                    <span>Character URL or ID</span>
+                    <input
+                      type="text"
+                      value={dndBeyondIdentifier}
+                      onChange={(event) => setDndBeyondIdentifier(event.target.value)}
+                      placeholder="https://www.dndbeyond.com/characters/12345678"
+                    />
+                  </label>
+                  {dndBeyondError && (
+                    <p className={styles.errorMessage}>{dndBeyondError}</p>
+                  )}
+                  <button
+                    type="submit"
+                    className={styles.secondaryButton}
+                    disabled={
+                      isImportingDndBeyond || !dndBeyondIdentifier.trim()
+                    }
+                  >
+                    {isImportingDndBeyond ? "Importing..." : "Import Character"}
+                  </button>
+                </form>
+              </div>
+              {partyMembers.length > 0 && (
+                <ul className={styles.cardList}>
+                  {partyMembers.map((member) => (
+                    <li key={member.id} className={styles.card}>
+                      <div>
+                        <h3>{member.name}</h3>
+                        <p className={styles.statLine}>
+                          Initiative: <strong>{member.initiative}</strong>
+                        </p>
+                        {member.source === "dndbeyond" && (
+                          <span className={styles.sourceTag}>Imported from D&amp;D Beyond</span>
+                        )}
+                        {member.classSummary && (
+                          <p className={styles.statLine}>
+                            Class: <strong>{member.classSummary}</strong>
+                          </p>
+                        )}
+                        {typeof member.level === "number" && member.level > 0 && (
+                          <p className={styles.statLine}>
+                            Level: <strong>{member.level}</strong>
+                          </p>
+                        )}
+                        {member.playerName && (
+                          <p className={styles.statLine}>
+                            Player: <strong>{member.playerName}</strong>
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className={styles.removeButton}
+                        onClick={() => removePartyMember(member.id)}
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+
+            <section className={styles.section}>
             <h2>Enemies</h2>
             <p className={styles.sectionDescription}>
               Capture statblocks, attacks, and initiatives for the creatures your
@@ -585,76 +657,8 @@ export default function Home() {
             )}
           </section>
 
-          <section className={styles.section}>
-            <h2>Combat Order</h2>
-            <p className={styles.sectionDescription}>
-              Automatically sorted by initiative. Advance turns as combat
-              progresses.
-            </p>
-            <div className={styles.combatControls}>
-              <button
-                type="button"
-                className={styles.primaryButton}
-                onClick={advanceTurn}
-                disabled={combatOrder.length === 0}
-              >
-                Next Turn
-              </button>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={resetTurn}
-                disabled={combatOrder.length === 0}
-              >
-                Reset to Top
-              </button>
-            </div>
-            {combatOrder.length === 0 ? (
-              <p className={styles.emptyState}>
-                Add party members and enemies to build the initiative order.
-              </p>
-            ) : (
-              <ol className={styles.combatList}>
-                {combatOrder.map((combatant, index) => (
-                  <li
-                    key={combatant.id}
-                    className={`${styles.combatant} ${
-                      index === highlightedIndex ? styles.activeCombatant : ""
-                    }`}
-                  >
-                    <div>
-                      <h3>
-                        {combatant.name}
-                        <span className={styles.tag}>
-                          {combatant.type === "party" ? "Party" : "Enemy"}
-                        </span>
-                      </h3>
-                      <p className={styles.statLine}>
-                        Initiative: <strong>{combatant.initiative}</strong>
-                      </p>
-                    </div>
-                    {combatant.type === "enemy" && (
-                      <div className={styles.combatantDetails}>
-                        {combatant.armorClass && (
-                          <span>AC {combatant.armorClass}</span>
-                        )}
-                        {combatant.hitPoints && (
-                          <span>HP {combatant.hitPoints}</span>
-                        )}
-                        {combatant.attacks.length > 0 && (
-                          <span>
-                            {combatant.attacks
-                              .map((attack) => attack.name)
-                              .join(", ")}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ol>
-            )}
-          </section>
+          </div>
+
         </main>
       </div>
     </>
