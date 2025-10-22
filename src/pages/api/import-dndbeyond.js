@@ -161,7 +161,6 @@ export default async function handler(request, response) {
       try {
         errorBodyText = await upstreamResponse.text();
       } catch (readError) {
-        errorBodyText = null;
         parsedError = {
           readError: readError?.message ?? String(readError),
         };
@@ -173,11 +172,6 @@ export default async function handler(request, response) {
         } catch (parseError) {
           parsedError = null;
         }
-      let errorDetails = null;
-      try {
-        errorDetails = await upstreamResponse.text();
-      } catch (readError) {
-        errorDetails = `Failed to read response body: ${readError?.message ?? readError}`;
       }
 
       console.error("D&D Beyond import failed: upstream error", {
@@ -211,18 +205,6 @@ export default async function handler(request, response) {
       }
 
       return response.status(upstreamResponse.status).json(errorResponse);
-        errorDetails,
-      });
-
-      let errorMessage = "Failed to fetch character from D&D Beyond.";
-      if (upstreamResponse.status === 404) {
-        errorMessage =
-          "Character not found on D&D Beyond. Ensure it is shared or the ID is correct.";
-      }
-
-      return response
-        .status(upstreamResponse.status)
-        .json({ error: errorMessage });
     }
 
     let payload;
