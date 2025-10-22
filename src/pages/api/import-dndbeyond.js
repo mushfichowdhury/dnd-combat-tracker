@@ -123,6 +123,10 @@ export default async function handler(request, response) {
 
   const identifier = request.body?.identifier;
   if (typeof identifier !== "string" || identifier.trim().length === 0) {
+    console.error("D&D Beyond import failed: missing identifier", {
+      bodyType: typeof request.body,
+      hasIdentifier: Boolean(request.body?.identifier),
+    });
     return response
       .status(400)
       .json({ error: "Provide a D&D Beyond character URL or ID." });
@@ -130,6 +134,9 @@ export default async function handler(request, response) {
 
   const characterId = extractCharacterId(identifier);
   if (!characterId) {
+    console.error("D&D Beyond import failed: could not parse identifier", {
+      identifier,
+    });
     return response
       .status(400)
       .json({ error: "Unable to determine a character ID from the input." });
@@ -148,15 +155,81 @@ export default async function handler(request, response) {
     );
 
     if (!upstreamResponse.ok) {
-      return response
-        .status(upstreamResponse.status)
-        .json({ error: "Failed to fetch character from D&D Beyond." });
+      let errorBodyText = null;
+      let parsedError = null;
+
+      try {
+        errorBodyText = await upstreamResponse.text();
+      } catch (readError) {
+        errorBodyText = null;
+        parsedError = {
+          readError: readError?.message ?? String(readError),
+        };
+      }
+
+      if (!parsedError && errorBodyText) {
+        try {
+          parsedError = JSON.parse(errorBodyText);
+        } catch (parseError) {
+          parsedError = null;
+        }
+      }
+
+      console.error("D&D Beyond import failed: upstream error", {
+        characterId,
+        status: upstreamResponse.status,
+        statusText: upstreamResponse.statusText,
+        errorBodyText,
+        parsedError,
+      });
+
+      let errorMessage = parsedError?.serverMessage
+        ? `D&D Beyond reported: ${parsedError.serverMessage}`
+        : "Failed to fetch character from D&D Beyond.";
+
+      if (upstreamResponse.status === 404) {
+        errorMessage =
+          "Character not found on D&D Beyond. Ensure it is shared or the ID is correct.";
+      } else if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
+        errorMessage =
+          "D&D Beyond denied access to this character. Make sure it is shared and you can view it without logging in.";
+      }
+
+      const errorResponse = { error: errorMessage };
+
+      if (parsedError?.serverMessage && !errorMessage.includes(parsedError.serverMessage)) {
+        errorResponse.details = parsedError.serverMessage;
+      }
+
+      if (parsedError?.errorCode) {
+        errorResponse.upstreamErrorCode = parsedError.errorCode;
+      }
+
+      return response.status(upstreamResponse.status).json(errorResponse);
     }
 
-    const payload = await upstreamResponse.json();
+    let payload;
+    try {
+      payload = await upstreamResponse.json();
+    } catch (parseError) {
+      console.error("D&D Beyond import failed: could not parse JSON", {
+        characterId,
+        message: parseError?.message ?? parseError,
+      });
+
+      return response.status(502).json({
+        error: "Received malformed data from D&D Beyond while importing the character.",
+      });
+    }
     const character = payload?.data;
 
     if (!character || !character.name) {
+      console.error("D&D Beyond import failed: unexpected payload", {
+        characterId,
+        hasData: Boolean(payload?.data),
+        payloadKeys: payload ? Object.keys(payload) : null,
+      });
+
       return response
         .status(502)
         .json({ error: "Received unexpected data from D&D Beyond." });
@@ -175,7 +248,11 @@ export default async function handler(request, response) {
       playerName: character.preferences?.playerName ?? null,
     });
   } catch (error) {
-    console.error("D&D Beyond import failed", error);
+    console.error("D&D Beyond import failed: unexpected exception", {
+      characterId,
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+    });
     return response
       .status(500)
       .json({ error: "An unexpected error occurred while importing." });
