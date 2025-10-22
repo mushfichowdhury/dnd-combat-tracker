@@ -155,6 +155,24 @@ export default async function handler(request, response) {
     );
 
     if (!upstreamResponse.ok) {
+      let errorBodyText = null;
+      let parsedError = null;
+
+      try {
+        errorBodyText = await upstreamResponse.text();
+      } catch (readError) {
+        errorBodyText = null;
+        parsedError = {
+          readError: readError?.message ?? String(readError),
+        };
+      }
+
+      if (!parsedError && errorBodyText) {
+        try {
+          parsedError = JSON.parse(errorBodyText);
+        } catch (parseError) {
+          parsedError = null;
+        }
       let errorDetails = null;
       try {
         errorDetails = await upstreamResponse.text();
@@ -166,6 +184,33 @@ export default async function handler(request, response) {
         characterId,
         status: upstreamResponse.status,
         statusText: upstreamResponse.statusText,
+        errorBodyText,
+        parsedError,
+      });
+
+      let errorMessage = parsedError?.serverMessage
+        ? `D&D Beyond reported: ${parsedError.serverMessage}`
+        : "Failed to fetch character from D&D Beyond.";
+
+      if (upstreamResponse.status === 404) {
+        errorMessage =
+          "Character not found on D&D Beyond. Ensure it is shared or the ID is correct.";
+      } else if (upstreamResponse.status === 401 || upstreamResponse.status === 403) {
+        errorMessage =
+          "D&D Beyond denied access to this character. Make sure it is shared and you can view it without logging in.";
+      }
+
+      const errorResponse = { error: errorMessage };
+
+      if (parsedError?.serverMessage && !errorMessage.includes(parsedError.serverMessage)) {
+        errorResponse.details = parsedError.serverMessage;
+      }
+
+      if (parsedError?.errorCode) {
+        errorResponse.upstreamErrorCode = parsedError.errorCode;
+      }
+
+      return response.status(upstreamResponse.status).json(errorResponse);
         errorDetails,
       });
 
