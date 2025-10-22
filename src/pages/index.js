@@ -445,7 +445,24 @@ export default function Home() {
               >
                 Reset to Top
               </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={refreshDndBeyondHitPoints}
+                disabled={
+                  isRefreshingDndBeyondHp ||
+                  !hasDndBeyondMembers ||
+                  combatOrder.length === 0
+                }
+              >
+                {isRefreshingDndBeyondHp
+                  ? "Refreshing HP..."
+                  : "Refresh D&D Beyond HP"}
+              </button>
             </div>
+            {dndBeyondRefreshError && (
+              <p className={styles.errorMessage}>{dndBeyondRefreshError}</p>
+            )}
             {combatOrder.length === 0 ? (
               <p className={styles.emptyState}>
                 Add party members and enemies to build the initiative order.
@@ -472,6 +489,24 @@ export default function Home() {
                           {formatInitiativeDisplay(combatant.initiative)}
                         </strong>
                       </p>
+                      {combatant.type === "party" && combatant.hitPoints && (
+                        <p className={styles.statLine}>
+                          Current HP: {" "}
+                          <strong>
+                            {combatant.hitPoints.current}
+                            {typeof combatant.hitPoints.max === "number" &&
+                            Number.isFinite(combatant.hitPoints.max) &&
+                            combatant.hitPoints.max > 0
+                              ? ` / ${combatant.hitPoints.max}`
+                              : ""}
+                          </strong>
+                          {combatant.hitPoints.temporary ? (
+                            <span className={styles.tempHpNote}>
+                              {` (+${combatant.hitPoints.temporary} temp)`}
+                            </span>
+                          ) : null}
+                        </p>
+                      )}
                     </div>
                     {combatant.type === "enemy" && (
                       <div className={styles.combatantDetails}>
@@ -567,19 +602,6 @@ export default function Home() {
                     {isImportingDndBeyond ? "Importing..." : "Import Character"}
                   </button>
                 </form>
-                <button
-                  type="button"
-                  className={styles.secondaryButton}
-                  onClick={refreshDndBeyondHitPoints}
-                  disabled={isRefreshingDndBeyondHp || !hasDndBeyondMembers}
-                >
-                  {isRefreshingDndBeyondHp
-                    ? "Refreshing HP..."
-                    : "Refresh D&D Beyond HP"}
-                </button>
-                {dndBeyondRefreshError && (
-                  <p className={styles.errorMessage}>{dndBeyondRefreshError}</p>
-                )}
               </div>
               {partyMembers.length > 0 && (
                 <ul className={styles.cardList}>
@@ -589,6 +611,21 @@ export default function Home() {
                         <h3>{member.name}</h3>
                         {member.source === "dndbeyond" && (
                           <span className={styles.sourceTag}>Imported from D&amp;D Beyond</span>
+                        )}
+                        {member.classSummary && (
+                          <p className={styles.statLine}>
+                            Class: <strong>{member.classSummary}</strong>
+                          </p>
+                        )}
+                        {typeof member.level === "number" && member.level > 0 && (
+                          <p className={styles.statLine}>
+                            Level: <strong>{member.level}</strong>
+                          </p>
+                        )}
+                        {member.playerName && (
+                          <p className={styles.statLine}>
+                            Player: <strong>{member.playerName}</strong>
+                          </p>
                         )}
                         {member.source === "dndbeyond" ? (
                           <label
@@ -612,39 +649,6 @@ export default function Home() {
                           <p className={styles.statLine}>
                             Initiative: {" "}
                             <strong>{formatInitiativeDisplay(member.initiative)}</strong>
-                          </p>
-                        )}
-                        {member.hitPoints && (
-                          <p className={styles.statLine}>
-                            Current HP: {" "}
-                            <strong>
-                              {member.hitPoints.current}
-                              {typeof member.hitPoints.max === "number" &&
-                              Number.isFinite(member.hitPoints.max) &&
-                              member.hitPoints.max > 0
-                                ? ` / ${member.hitPoints.max}`
-                                : ""}
-                            </strong>
-                            {member.hitPoints.temporary ? (
-                              <span className={styles.tempHpNote}>
-                                {` (+${member.hitPoints.temporary} temp)`}
-                              </span>
-                            ) : null}
-                          </p>
-                        )}
-                        {member.classSummary && (
-                          <p className={styles.statLine}>
-                            Class: <strong>{member.classSummary}</strong>
-                          </p>
-                        )}
-                        {typeof member.level === "number" && member.level > 0 && (
-                          <p className={styles.statLine}>
-                            Level: <strong>{member.level}</strong>
-                          </p>
-                        )}
-                        {member.playerName && (
-                          <p className={styles.statLine}>
-                            Player: <strong>{member.playerName}</strong>
                           </p>
                         )}
                         {member.source === "dndbeyond" && (
