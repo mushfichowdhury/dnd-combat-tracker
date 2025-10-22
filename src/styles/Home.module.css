@@ -69,6 +69,41 @@
   gap: 20px;
 }
 
+.importBox {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: rgba(43, 31, 20, 0.8);
+  border: 1px solid rgba(224, 185, 112, 0.2);
+  border-radius: 16px;
+  padding: 20px;
+}
+
+.importBox h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #f6efe3;
+}
+
+.helperText {
+  margin: 0;
+  color: rgba(246, 239, 227, 0.75);
+  line-height: 1.5;
+}
+
+.importForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.errorMessage {
+  margin: 0;
+  color: #f7b9b9;
+  font-size: 0.9rem;
+}
+
 .formGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -180,6 +215,21 @@
   margin: 0 0 4px;
   font-size: 1.2rem;
   color: #f6efe3;
+}
+
+.sourceTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(224, 185, 112, 0.15);
+  color: #f3d8aa;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .cardHeader {
