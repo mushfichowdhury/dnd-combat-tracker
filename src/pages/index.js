@@ -36,6 +36,36 @@ const formatClassSummary = (classes = []) => {
   return parts.join(" / ");
 };
 
+const parseInitiativeValue = (value) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+  }
+
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return Number.NEGATIVE_INFINITY;
+    }
+
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : Number.NEGATIVE_INFINITY;
+  }
+
+  return Number.NEGATIVE_INFINITY;
+};
+
+const formatInitiativeDisplay = (value) => {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim() !== "") {
+    return value.trim();
+  }
+
+  return "--";
+};
+
 export default function Home() {
   const [partyMembers, setPartyMembers] = useState([]);
   const [enemies, setEnemies] = useState([]);
@@ -47,6 +77,8 @@ export default function Home() {
   const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
   const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
   const [dndBeyondError, setDndBeyondError] = useState("");
+  const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
+  const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
 
   const handlePartySubmit = (event) => {
     event.preventDefault();
@@ -71,6 +103,7 @@ export default function Home() {
     }
 
     setDndBeyondError("");
+    setDndBeyondRefreshError("");
     setIsImportingDndBeyond(true);
 
     try {
@@ -117,7 +150,7 @@ export default function Home() {
         {
           id: generateId(),
           name: data.name,
-          initiative: Number.isFinite(initiativeNumber) ? initiativeNumber : 0,
+          initiative: null,
           source: "dndbeyond",
           classSummary: classSummary || undefined,
           level:
@@ -126,6 +159,13 @@ export default function Home() {
               : undefined,
           playerName: data.playerName || undefined,
           ddbCharacterId: data.id || undefined,
+          abilityScores: Array.isArray(data.abilityScores)
+            ? data.abilityScores
+            : undefined,
+          hitPoints: data.hitPoints || undefined,
+          calculatedInitiative: Number.isFinite(initiativeNumber)
+            ? initiativeNumber
+            : undefined,
         },
       ]);
 
@@ -191,6 +231,117 @@ export default function Home() {
     setEnemyAttacks((prev) => prev.filter((attack) => attack.id !== id));
   };
 
+  const handleImportedInitiativeChange = (id, value) => {
+    setPartyMembers((prev) =>
+      prev.map((member) => {
+        if (member.id !== id) {
+          return member;
+        }
+
+        if (value === "") {
+          return {
+            ...member,
+            initiative: null,
+          };
+        }
+
+        const numericValue = Number(value);
+
+        if (!Number.isFinite(numericValue)) {
+          return member;
+        }
+
+        return {
+          ...member,
+          initiative: numericValue,
+        };
+      }),
+    );
+  };
+
+  const refreshDndBeyondHitPoints = async () => {
+    const dndBeyondMembers = partyMembers.filter(
+      (member) => member.source === "dndbeyond" && member.ddbCharacterId,
+    );
+
+    if (dndBeyondMembers.length === 0) {
+      return;
+    }
+
+    setDndBeyondRefreshError("");
+    setIsRefreshingDndBeyondHp(true);
+
+    try {
+      const updates = [];
+
+      for (const member of dndBeyondMembers) {
+        const response = await fetch("/api/import-dndbeyond", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ identifier: member.ddbCharacterId }),
+        });
+
+        let data = null;
+        try {
+          data = await response.json();
+        } catch (parseError) {
+          data = null;
+        }
+
+        if (!response.ok || !data) {
+          const message = data?.error
+            ? `${member.name}: ${data.error}`
+            : `Failed to refresh hit points for ${member.name}.`;
+          throw new Error(message);
+        }
+
+        updates.push({ memberId: member.id, data });
+      }
+
+      setPartyMembers((prev) =>
+        prev.map((member) => {
+          const update = updates.find((entry) => entry.memberId === member.id);
+          if (!update) {
+            return member;
+          }
+
+          const { data } = update;
+          const updatedInitiative = Number(data.initiative);
+          const updatedClassSummary = formatClassSummary(data.classes);
+          const updatedLevel = Number(data.level);
+
+          return {
+            ...member,
+            abilityScores: Array.isArray(data.abilityScores)
+              ? data.abilityScores
+              : member.abilityScores,
+            hitPoints: data.hitPoints || member.hitPoints,
+            classSummary: updatedClassSummary || member.classSummary,
+            level:
+              Number.isFinite(updatedLevel) && updatedLevel > 0
+                ? updatedLevel
+                : member.level,
+            playerName: data.playerName || member.playerName,
+            calculatedInitiative: Number.isFinite(updatedInitiative)
+              ? updatedInitiative
+              : member.calculatedInitiative,
+          };
+        }),
+      );
+    } catch (error) {
+      console.error(error);
+      setDndBeyondRefreshError(
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to refresh hit points from D&D Beyond.",
+      );
+    } finally {
+      setIsRefreshingDndBeyondHp(false);
+    }
+  };
+
   const combatOrder = useMemo(() => {
     const partyCombatants = partyMembers.map((member) => ({
       ...member,
@@ -202,10 +353,14 @@ export default function Home() {
     }));
 
     return [...partyCombatants, ...enemyCombatants].sort((a, b) => {
-      if (b.initiative === a.initiative) {
+      const initiativeA = parseInitiativeValue(a.initiative);
+      const initiativeB = parseInitiativeValue(b.initiative);
+
+      if (initiativeB === initiativeA) {
         return a.name.localeCompare(b.name);
       }
-      return b.initiative - a.initiative;
+
+      return initiativeB - initiativeA;
     });
   }, [partyMembers, enemies]);
 
@@ -242,6 +397,11 @@ export default function Home() {
     if (combatOrder.length === 0) return -1;
     return currentTurnIndex === -1 ? 0 : currentTurnIndex;
   }, [combatOrder, currentTurnIndex]);
+
+  const hasDndBeyondMembers = useMemo(
+    () => partyMembers.some((member) => member.source === "dndbeyond"),
+    [partyMembers],
+  );
 
   return (
     <>
@@ -307,7 +467,10 @@ export default function Home() {
                         </span>
                       </h3>
                       <p className={styles.statLine}>
-                        Initiative: <strong>{combatant.initiative}</strong>
+                        Initiative: {" "}
+                        <strong>
+                          {formatInitiativeDisplay(combatant.initiative)}
+                        </strong>
                       </p>
                     </div>
                     {combatant.type === "enemy" && (
@@ -378,8 +541,8 @@ export default function Home() {
               <div className={styles.importBox}>
                 <h3>Import from D&amp;D Beyond</h3>
                 <p className={styles.helperText}>
-                  Paste a shareable character link or ID to pull in their initiative
-                  automatically.
+                  Paste a shareable character link or ID to import their stats and
+                  current hit points. Enter initiative manually after importing.
                 </p>
                 <form onSubmit={handleDndBeyondImport} className={styles.importForm}>
                   <label className={styles.inputGroup}>
@@ -404,6 +567,19 @@ export default function Home() {
                     {isImportingDndBeyond ? "Importing..." : "Import Character"}
                   </button>
                 </form>
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={refreshDndBeyondHitPoints}
+                  disabled={isRefreshingDndBeyondHp || !hasDndBeyondMembers}
+                >
+                  {isRefreshingDndBeyondHp
+                    ? "Refreshing HP..."
+                    : "Refresh D&D Beyond HP"}
+                </button>
+                {dndBeyondRefreshError && (
+                  <p className={styles.errorMessage}>{dndBeyondRefreshError}</p>
+                )}
               </div>
               {partyMembers.length > 0 && (
                 <ul className={styles.cardList}>
@@ -411,11 +587,50 @@ export default function Home() {
                     <li key={member.id} className={styles.card}>
                       <div>
                         <h3>{member.name}</h3>
-                        <p className={styles.statLine}>
-                          Initiative: <strong>{member.initiative}</strong>
-                        </p>
                         {member.source === "dndbeyond" && (
                           <span className={styles.sourceTag}>Imported from D&amp;D Beyond</span>
+                        )}
+                        {member.source === "dndbeyond" ? (
+                          <label
+                            className={`${styles.inputGroup} ${styles.initiativeEditor}`}
+                          >
+                            <span>Initiative</span>
+                            <input
+                              type="number"
+                              className={styles.initiativeInput}
+                              value={member.initiative ?? ""}
+                              onChange={(event) =>
+                                handleImportedInitiativeChange(
+                                  member.id,
+                                  event.target.value,
+                                )
+                              }
+                              placeholder="Enter initiative"
+                            />
+                          </label>
+                        ) : (
+                          <p className={styles.statLine}>
+                            Initiative: {" "}
+                            <strong>{formatInitiativeDisplay(member.initiative)}</strong>
+                          </p>
+                        )}
+                        {member.hitPoints && (
+                          <p className={styles.statLine}>
+                            Current HP: {" "}
+                            <strong>
+                              {member.hitPoints.current}
+                              {typeof member.hitPoints.max === "number" &&
+                              Number.isFinite(member.hitPoints.max) &&
+                              member.hitPoints.max > 0
+                                ? ` / ${member.hitPoints.max}`
+                                : ""}
+                            </strong>
+                            {member.hitPoints.temporary ? (
+                              <span className={styles.tempHpNote}>
+                                {` (+${member.hitPoints.temporary} temp)`}
+                              </span>
+                            ) : null}
+                          </p>
                         )}
                         {member.classSummary && (
                           <p className={styles.statLine}>
@@ -431,6 +646,53 @@ export default function Home() {
                           <p className={styles.statLine}>
                             Player: <strong>{member.playerName}</strong>
                           </p>
+                        )}
+                        {member.source === "dndbeyond" && (
+                          <details className={styles.statsDropdown}>
+                            <summary className={styles.dropdownSummary}>
+                              View Stats
+                            </summary>
+                            <div className={styles.statsContent}>
+                              {Array.isArray(member.abilityScores) &&
+                                member.abilityScores.length > 0 && (
+                                  <div>
+                                    <h4 className={styles.statsHeading}>
+                                      Ability Scores
+                                    </h4>
+                                    <ul className={styles.abilityGrid}>
+                                      {member.abilityScores.map((ability) => (
+                                        <li
+                                          key={ability.id}
+                                          className={styles.abilityCell}
+                                        >
+                                          <span className={styles.abilityName}>
+                                            {ability.name}
+                                          </span>
+                                          <span className={styles.abilityScore}>
+                                            {ability.score}
+                                          </span>
+                                          <span className={styles.abilityModifier}>
+                                            {ability.modifier >= 0
+                                              ? `+${ability.modifier}`
+                                              : ability.modifier}
+                                          </span>
+                                        </li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              {typeof member.calculatedInitiative === "number" && (
+                                <p className={styles.statLine}>
+                                  Suggested initiative bonus: {" "}
+                                  <strong>
+                                    {member.calculatedInitiative >= 0
+                                      ? `+${member.calculatedInitiative}`
+                                      : member.calculatedInitiative}
+                                  </strong>
+                                </p>
+                              )}
+                            </div>
+                          </details>
                         )}
                       </div>
                       <button

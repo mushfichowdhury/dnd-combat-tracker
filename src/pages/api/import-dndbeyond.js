@@ -1,4 +1,12 @@
 const DEXTERITY_STAT_ID = 2;
+const ABILITY_STAT_IDS = {
+  1: "Strength",
+  2: "Dexterity",
+  3: "Constitution",
+  4: "Intelligence",
+  5: "Wisdom",
+  6: "Charisma",
+};
 
 const extractCharacterId = (identifier) => {
   if (!identifier || typeof identifier !== "string") {
@@ -45,21 +53,50 @@ const flattenModifiers = (modifiers) => {
   }, []);
 };
 
+const getAbilityScore = (character, statId) => {
+  if (!character || !statId) {
+    return null;
+  }
+
+  const override = Array.isArray(character.overrideStats)
+    ? character.overrideStats.find((stat) => stat?.id === statId)
+    : null;
+  if (override && Number.isFinite(Number(override.value))) {
+    return Number(override.value);
+  }
+
+  const base = Array.isArray(character.stats)
+    ? character.stats.find((stat) => stat?.id === statId)
+    : null;
+
+  if (base && Number.isFinite(Number(base.value))) {
+    return Number(base.value);
+  }
+
+  switch (statId) {
+    case 1:
+      return Number(character.strength) || null;
+    case 2:
+      return Number(character.dexterity) || null;
+    case 3:
+      return Number(character.constitution) || null;
+    case 4:
+      return Number(character.intelligence) || null;
+    case 5:
+      return Number(character.wisdom) || null;
+    case 6:
+      return Number(character.charisma) || null;
+    default:
+      return null;
+  }
+};
+
 const calculateDexterityModifier = (character) => {
   if (!character) {
     return 0;
   }
 
-  const override = Array.isArray(character.overrideStats)
-    ? character.overrideStats.find((stat) => stat?.id === DEXTERITY_STAT_ID)
-    : null;
-  const base = Array.isArray(character.stats)
-    ? character.stats.find((stat) => stat?.id === DEXTERITY_STAT_ID)
-    : null;
-
-  const dexterityScore = Number(
-    override?.value ?? base?.value ?? character.dexterity ?? 10,
-  );
+  const dexterityScore = getAbilityScore(character, DEXTERITY_STAT_ID);
 
   if (!Number.isFinite(dexterityScore)) {
     return 0;
@@ -100,6 +137,60 @@ const calculateInitiative = (character) => {
   }
 
   return dexMod + initiativeBonuses + bonusStats + customAdjustments;
+};
+
+const mapAbilityScores = (character) => {
+  return Object.entries(ABILITY_STAT_IDS)
+    .map(([statId, label]) => {
+      const numericId = Number(statId);
+      const score = getAbilityScore(character, numericId);
+
+      if (!Number.isFinite(score)) {
+        return null;
+      }
+
+      const modifier = Math.floor((score - 10) / 2);
+
+      return {
+        id: numericId,
+        name: label,
+        score,
+        modifier,
+      };
+    })
+    .filter(Boolean);
+};
+
+const calculateHitPoints = (character) => {
+  if (!character) {
+    return null;
+  }
+
+  const baseHitPoints = Number(character.baseHitPoints) || 0;
+  const bonusHitPoints = Number(character.bonusHitPoints) || 0;
+  const overrideHitPoints = Number(character.overrideHitPoints);
+  const removedHitPoints = Number(character.removedHitPoints) || 0;
+  const temporaryHitPoints = Number(character.temporaryHitPoints) || 0;
+
+  const maxHitPoints = Number.isFinite(overrideHitPoints) && overrideHitPoints > 0
+    ? overrideHitPoints
+    : baseHitPoints + bonusHitPoints;
+
+  if (!Number.isFinite(maxHitPoints) || maxHitPoints <= 0) {
+    return {
+      current: 0,
+      max: 0,
+      temporary: temporaryHitPoints > 0 ? temporaryHitPoints : 0,
+    };
+  }
+
+  const currentHitPoints = Math.max(maxHitPoints - removedHitPoints, 0);
+
+  return {
+    current: currentHitPoints,
+    max: maxHitPoints,
+    temporary: temporaryHitPoints > 0 ? temporaryHitPoints : 0,
+  };
 };
 
 const mapClasses = (classes) => {
@@ -237,6 +328,8 @@ export default async function handler(request, response) {
     const initiative = calculateInitiative(character);
     const classes = mapClasses(character.classes);
     const level = classes.reduce((total, current) => total + current.level, 0);
+    const abilityScores = mapAbilityScores(character);
+    const hitPoints = calculateHitPoints(character);
 
     return response.status(200).json({
       id: characterId,
@@ -245,6 +338,8 @@ export default async function handler(request, response) {
       classes,
       level,
       playerName: character.preferences?.playerName ?? null,
+      abilityScores,
+      hitPoints,
     });
   } catch (error) {
     console.error("D&D Beyond import failed: unexpected exception", {
