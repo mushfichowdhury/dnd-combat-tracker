@@ -161,35 +161,87 @@ const mapAbilityScores = (character) => {
     .filter(Boolean);
 };
 
+const sanitizeNumber = (value) => {
+  const numericValue = Number(value);
+  if (!Number.isFinite(numericValue)) {
+    return null;
+  }
+
+  return numericValue;
+};
+
 const calculateHitPoints = (character) => {
   if (!character) {
     return null;
   }
 
-  const baseHitPoints = Number(character.baseHitPoints) || 0;
-  const bonusHitPoints = Number(character.bonusHitPoints) || 0;
-  const overrideHitPoints = Number(character.overrideHitPoints);
-  const removedHitPoints = Number(character.removedHitPoints) || 0;
-  const temporaryHitPoints = Number(character.temporaryHitPoints) || 0;
+  const baseHitPoints = sanitizeNumber(character.baseHitPoints) || 0;
+  const bonusHitPoints = sanitizeNumber(character.bonusHitPoints) || 0;
+  const overrideHitPointMaximum = sanitizeNumber(
+    character.overrideHitPointMaximum,
+  );
+  const overrideHitPoints = sanitizeNumber(character.overrideHitPoints);
+  const removedHitPoints = sanitizeNumber(character.removedHitPoints) || 0;
 
-  const maxHitPoints = Number.isFinite(overrideHitPoints) && overrideHitPoints > 0
-    ? overrideHitPoints
-    : baseHitPoints + bonusHitPoints;
+  const computedMax = baseHitPoints + bonusHitPoints;
+  const maxOverride = [overrideHitPointMaximum, overrideHitPoints].find(
+    (value) => Number.isFinite(value) && value > 0,
+  );
 
-  if (!Number.isFinite(maxHitPoints) || maxHitPoints <= 0) {
-    return {
-      current: 0,
-      max: 0,
-      temporary: temporaryHitPoints > 0 ? temporaryHitPoints : 0,
-    };
+  let maxHitPoints = Number.isFinite(maxOverride) ? maxOverride : computedMax;
+  if (!Number.isFinite(maxHitPoints) || maxHitPoints < 0) {
+    maxHitPoints = 0;
   }
 
-  const currentHitPoints = Math.max(maxHitPoints - removedHitPoints, 0);
+  const overrideCurrentHitPoints = sanitizeNumber(
+    character.overrideCurrentHitPoints,
+  );
+  const currentHitPointsValue = sanitizeNumber(character.currentHitPoints);
+
+  let currentHitPoints = [overrideCurrentHitPoints, currentHitPointsValue].find(
+    (value) => Number.isFinite(value) && value >= 0,
+  );
+
+  if (!Number.isFinite(currentHitPoints)) {
+    currentHitPoints = Number.isFinite(maxHitPoints)
+      ? Math.max(maxHitPoints - removedHitPoints, 0)
+      : 0;
+  }
+
+  if (currentHitPoints < 0) {
+    currentHitPoints = 0;
+  }
+
+  if (Number.isFinite(maxHitPoints) && maxHitPoints > 0) {
+    currentHitPoints = Math.min(currentHitPoints, maxHitPoints);
+  }
+
+  const temporaryHitPointsCandidates = [
+    sanitizeNumber(character.temporaryHitPoints),
+    sanitizeNumber(character.bonusTemporaryHitPoints),
+    sanitizeNumber(character.overrideTemporaryHitPoints),
+  ].filter((value) => Number.isFinite(value) && value > 0);
+
+  const temporaryHitPoints =
+    temporaryHitPointsCandidates.length > 0
+      ? Math.max(...temporaryHitPointsCandidates)
+      : 0;
+
+  if (!Number.isFinite(maxHitPoints) || maxHitPoints <= 0) {
+    maxHitPoints = Number.isFinite(currentHitPoints) ? currentHitPoints : 0;
+  }
+
+  const sanitizedCurrent = Number.isFinite(currentHitPoints)
+    ? currentHitPoints
+    : 0;
+  const sanitizedMax = Number.isFinite(maxHitPoints) && maxHitPoints > 0
+    ? maxHitPoints
+    : 0;
 
   return {
-    current: currentHitPoints,
-    max: maxHitPoints,
-    temporary: temporaryHitPoints > 0 ? temporaryHitPoints : 0,
+    current: sanitizedCurrent,
+    max: sanitizedMax,
+    temporary: temporaryHitPoints,
   };
 };
 

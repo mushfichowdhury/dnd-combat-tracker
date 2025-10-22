@@ -457,7 +457,7 @@ export default function Home() {
               >
                 {isRefreshingDndBeyondHp
                   ? "Refreshing HP..."
-                  : "Refresh D&D Beyond HP"}
+                  : "Refresh HP"}
               </button>
             </div>
             {dndBeyondRefreshError && (
@@ -469,45 +469,64 @@ export default function Home() {
               </p>
             ) : (
               <ol className={styles.combatList}>
-                {combatOrder.map((combatant, index) => (
-                  <li
-                    key={combatant.id}
-                    className={`${styles.combatant} ${
-                      index === highlightedIndex ? styles.activeCombatant : ""
-                    }`}
-                  >
-                    <div>
-                      <h3>
-                        {combatant.name}
-                        <span className={styles.tag}>
-                          {combatant.type === "party" ? "Party" : "Enemy"}
-                        </span>
-                      </h3>
-                      <p className={styles.statLine}>
-                        Initiative: {" "}
-                        <strong>
-                          {formatInitiativeDisplay(combatant.initiative)}
-                        </strong>
-                      </p>
-                      {combatant.type === "party" && combatant.hitPoints && (
-                        <p className={styles.statLine}>
-                          Current HP: {" "}
-                          <strong>
-                            {combatant.hitPoints.current}
-                            {typeof combatant.hitPoints.max === "number" &&
-                            Number.isFinite(combatant.hitPoints.max) &&
-                            combatant.hitPoints.max > 0
-                              ? ` / ${combatant.hitPoints.max}`
-                              : ""}
-                          </strong>
-                          {combatant.hitPoints.temporary ? (
-                            <span className={styles.tempHpNote}>
-                              {` (+${combatant.hitPoints.temporary} temp)`}
+                {combatOrder.map((combatant, index) => {
+                  const showHitPoints =
+                    combatant.type === "party" && combatant.hitPoints;
+                  const currentHitPoints = showHitPoints
+                    ? Number(combatant.hitPoints.current)
+                    : null;
+                  const isLowHitPoints =
+                    Number.isFinite(currentHitPoints) && currentHitPoints <= 5;
+
+                  return (
+                    <li
+                      key={combatant.id}
+                      className={`${styles.combatant} ${
+                        index === highlightedIndex ? styles.activeCombatant : ""
+                      }`}
+                    >
+                      <div className={styles.combatantContent}>
+                        <div className={styles.combatantInfo}>
+                          <h3>
+                            {combatant.name}
+                            <span className={styles.tag}>
+                              {combatant.type === "party" ? "Party" : "Enemy"}
                             </span>
-                          ) : null}
-                        </p>
-                      )}
-                    </div>
+                          </h3>
+                        </div>
+                        <div className={styles.combatantMeta}>
+                          <p className={styles.statLine}>
+                            Initiative: {" "}
+                            <strong>
+                              {formatInitiativeDisplay(combatant.initiative)}
+                            </strong>
+                          </p>
+                          {showHitPoints && (
+                            <div className={styles.currentHp}>
+                              <span className={styles.currentHpLabel}>HP</span>
+                              <span
+                                className={`${styles.currentHpValue} ${
+                                  isLowHitPoints ? styles.lowHp : ""
+                                }`}
+                              >
+                                {combatant.hitPoints.current}
+                              </span>
+                              {typeof combatant.hitPoints.max === "number" &&
+                              Number.isFinite(combatant.hitPoints.max) &&
+                              combatant.hitPoints.max > 0 ? (
+                                <span className={styles.currentHpMax}>
+                                  / {combatant.hitPoints.max}
+                                </span>
+                              ) : null}
+                              {combatant.hitPoints.temporary ? (
+                                <span className={styles.tempHpNote}>
+                                  {` (+${combatant.hitPoints.temporary} temp)`}
+                                </span>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     {combatant.type === "enemy" && (
                       <div className={styles.combatantDetails}>
                         {combatant.armorClass && (
@@ -526,7 +545,8 @@ export default function Home() {
                       </div>
                     )}
                   </li>
-                ))}
+                    );
+                  })}
               </ol>
             )}
           </section>
