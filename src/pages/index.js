@@ -19,6 +19,23 @@ const emptyEnemyForm = {
 };
 const emptyAttackForm = { name: "", toHit: "", damage: "" };
 
+const formatClassSummary = (classes = []) => {
+  if (!Array.isArray(classes) || classes.length === 0) {
+    return "";
+  }
+
+  const parts = classes
+    .filter((entry) => entry && entry.name)
+    .map((entry) => {
+      if (entry.level) {
+        return `${entry.name} ${entry.level}`;
+      }
+      return entry.name;
+    });
+
+  return parts.join(" / ");
+};
+
 export default function Home() {
   const [partyMembers, setPartyMembers] = useState([]);
   const [enemies, setEnemies] = useState([]);
@@ -27,6 +44,9 @@ export default function Home() {
   const [attackForm, setAttackForm] = useState(emptyAttackForm);
   const [enemyAttacks, setEnemyAttacks] = useState([]);
   const [activeCombatantId, setActiveCombatantId] = useState(null);
+  const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
+  const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
+  const [dndBeyondError, setDndBeyondError] = useState("");
 
   const handlePartySubmit = (event) => {
     event.preventDefault();
@@ -41,6 +61,85 @@ export default function Home() {
       },
     ]);
     setPartyForm(emptyPartyForm);
+  };
+
+  const handleDndBeyondImport = async (event) => {
+    event.preventDefault();
+    const identifier = dndBeyondIdentifier.trim();
+    if (!identifier) {
+      return;
+    }
+
+    setDndBeyondError("");
+    setIsImportingDndBeyond(true);
+
+    try {
+      const response = await fetch("/api/import-dndbeyond", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ identifier }),
+      });
+
+      let data = null;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        data = null;
+      }
+
+      if (!response.ok) {
+        const message = (data && data.error)
+          ? data.error
+          : "Failed to import character from D&D Beyond.";
+        throw new Error(message);
+      }
+
+      if (!data || !data.name) {
+        throw new Error("The character response was missing a name.");
+      }
+
+      if (
+        data.id &&
+        partyMembers.some((member) => member.ddbCharacterId === data.id)
+      ) {
+        setDndBeyondError("That character is already in your party.");
+        return;
+      }
+
+      const initiativeNumber = Number(data.initiative);
+      const levelNumber = Number(data.level);
+      const classSummary = formatClassSummary(data.classes);
+
+      setPartyMembers((prev) => [
+        ...prev,
+        {
+          id: generateId(),
+          name: data.name,
+          initiative: Number.isFinite(initiativeNumber) ? initiativeNumber : 0,
+          source: "dndbeyond",
+          classSummary: classSummary || undefined,
+          level:
+            Number.isFinite(levelNumber) && levelNumber > 0
+              ? levelNumber
+              : undefined,
+          playerName: data.playerName || undefined,
+          ddbCharacterId: data.id || undefined,
+        },
+      ]);
+
+      setDndBeyondIdentifier("");
+    } catch (error) {
+      console.error(error);
+      setDndBeyondError(
+        error instanceof Error && error.message
+          ? error.message
+          : "Failed to import character from D&D Beyond.",
+      );
+    } finally {
+      setIsImportingDndBeyond(false);
+    }
   };
 
   const handleAttackSubmit = (event) => {
@@ -204,6 +303,36 @@ export default function Home() {
                 Add Party Member
               </button>
             </form>
+            <div className={styles.importBox}>
+              <h3>Import from D&amp;D Beyond</h3>
+              <p className={styles.helperText}>
+                Paste a shareable character link or ID to pull in their initiative
+                automatically.
+              </p>
+              <form onSubmit={handleDndBeyondImport} className={styles.importForm}>
+                <label className={styles.inputGroup}>
+                  <span>Character URL or ID</span>
+                  <input
+                    type="text"
+                    value={dndBeyondIdentifier}
+                    onChange={(event) => setDndBeyondIdentifier(event.target.value)}
+                    placeholder="https://www.dndbeyond.com/characters/12345678"
+                  />
+                </label>
+                {dndBeyondError && (
+                  <p className={styles.errorMessage}>{dndBeyondError}</p>
+                )}
+                <button
+                  type="submit"
+                  className={styles.secondaryButton}
+                  disabled={
+                    isImportingDndBeyond || !dndBeyondIdentifier.trim()
+                  }
+                >
+                  {isImportingDndBeyond ? "Importing..." : "Import Character"}
+                </button>
+              </form>
+            </div>
             {partyMembers.length > 0 && (
               <ul className={styles.cardList}>
                 {partyMembers.map((member) => (
@@ -213,6 +342,24 @@ export default function Home() {
                       <p className={styles.statLine}>
                         Initiative: <strong>{member.initiative}</strong>
                       </p>
+                      {member.source === "dndbeyond" && (
+                        <span className={styles.sourceTag}>Imported from D&amp;D Beyond</span>
+                      )}
+                      {member.classSummary && (
+                        <p className={styles.statLine}>
+                          Class: <strong>{member.classSummary}</strong>
+                        </p>
+                      )}
+                      {typeof member.level === "number" && member.level > 0 && (
+                        <p className={styles.statLine}>
+                          Level: <strong>{member.level}</strong>
+                        </p>
+                      )}
+                      {member.playerName && (
+                        <p className={styles.statLine}>
+                          Player: <strong>{member.playerName}</strong>
+                        </p>
+                      )}
                     </div>
                     <button
                       type="button"
