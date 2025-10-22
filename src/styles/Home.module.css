@@ -248,7 +248,7 @@
 }
 
 .tempHpNote {
-  margin-left: 6px;
+  margin-left: 0;
   color: #f2c57c;
   font-weight: 600;
   font-size: 0.9rem;
@@ -466,12 +466,60 @@
   transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.combatantContent {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.combatantInfo {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.combatantMeta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
 .combatant h3 {
   margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
   font-size: 1.15rem;
+}
+
+.currentHp {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.currentHpLabel {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(246, 239, 227, 0.6);
+}
+
+.currentHpValue {
+  font-size: 1.6rem;
+  color: #f6efe3;
+  line-height: 1;
+}
+
+.currentHpMax {
+  font-size: 0.95rem;
+  color: rgba(246, 239, 227, 0.7);
+}
+
+.lowHp {
+  color: #ff6b6b;
 }
 
 .tag {
@@ -524,6 +572,20 @@
   .primaryButton,
   .secondaryButton {
     width: 100%;
+  }
+
+  .combatantContent {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .combatantMeta {
+    align-items: flex-start;
+  }
+
+  .currentHp {
+    flex-wrap: wrap;
   }
 }
 
