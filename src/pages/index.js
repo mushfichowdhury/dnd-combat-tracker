@@ -949,6 +949,18 @@ export default function Home() {
                 }));
         };
 
+        const clearEnemyDamageInput = (id) => {
+                setEnemyDamageInputs((prev) => {
+                        if (!(id in prev)) {
+                                return prev;
+                        }
+
+                        const next = { ...prev };
+                        delete next[id];
+                        return next;
+                });
+        };
+
         const handleManualPartyDamageInputChange = (id, value) => {
                 setPartyDamageInputs((prev) => ({
                         ...prev,
@@ -956,17 +968,28 @@ export default function Home() {
                 }));
         };
 
+        const clearManualPartyDamageInput = (id) => {
+                setPartyDamageInputs((prev) => {
+                        if (!(id in prev)) {
+                                return prev;
+                        }
+
+                        const next = { ...prev };
+                        delete next[id];
+                        return next;
+                });
+        };
+
         const applyEnemyDamage = (id) => {
                 const rawDamage = enemyDamageInputs[id];
                 const damageValue = Number(rawDamage);
 
                 if (!Number.isFinite(damageValue)) {
+                        clearEnemyDamageInput(id);
                         return;
                 }
 
                 const sanitizedDamage = Math.max(0, damageValue);
-
-                let didUpdate = false;
 
                 setEnemies((prev) =>
                         prev.map((enemy) => {
@@ -984,8 +1007,6 @@ export default function Home() {
                                         return enemy;
                                 }
 
-                                didUpdate = true;
-
                                 const nextHitPoints = Math.max(0, currentHitPoints - sanitizedDamage);
 
                                 return {
@@ -998,17 +1019,7 @@ export default function Home() {
                         })
                 );
 
-                if (didUpdate) {
-                        setEnemyDamageInputs((prev) => {
-                                if (!(id in prev)) {
-                                        return prev;
-                                }
-
-                                const next = { ...prev };
-                                delete next[id];
-                                return next;
-                        });
-                }
+                clearEnemyDamageInput(id);
         };
 
         const applyManualPartyDamage = (id) => {
@@ -1016,11 +1027,11 @@ export default function Home() {
                 const damageValue = Number(rawDamage);
 
                 if (!Number.isFinite(damageValue)) {
+                        clearManualPartyDamageInput(id);
                         return;
                 }
 
                 const sanitizedDamage = Math.max(0, damageValue);
-                let didUpdate = false;
 
                 setPartyMembers((prev) =>
                         prev.map((member) => {
@@ -1061,8 +1072,6 @@ export default function Home() {
                                         return member;
                                 }
 
-                                didUpdate = true;
-
                                 const nextHitPointsValue = Math.max(0, numericCurrent - sanitizedDamage);
                                 const nextHitPoints =
                                         hitPoints && typeof hitPoints === "object"
@@ -1076,17 +1085,7 @@ export default function Home() {
                         })
                 );
 
-                if (didUpdate) {
-                        setPartyDamageInputs((prev) => {
-                                if (!(id in prev)) {
-                                        return prev;
-                                }
-
-                                const next = { ...prev };
-                                delete next[id];
-                                return next;
-                        });
-                }
+                clearManualPartyDamageInput(id);
         };
 
 	const toggleEnemyNotesExpansion = (id) => {
