@@ -15,8 +15,10 @@ export default async function handler(request, response) {
                         .json({ error: "Provide a non-empty search query." });
         }
 
+        const trimmedQuery = query.trim();
+
         const searchParams = new URLSearchParams({
-                search: query,
+                name__icontains: trimmedQuery,
                 limit: "10",
         });
 
