@@ -66,14 +66,6 @@ const formatInitiativeDisplay = (value) => {
 	return "--";
 };
 
-const formatAbilityModifier = (value) => {
-	if (!Number.isFinite(value)) {
-		return "--";
-	}
-
-	return value >= 0 ? `+${value}` : value;
-};
-
 export default function Home() {
 	const [partyMembers, setPartyMembers] = useState([]);
 	const [enemies, setEnemies] = useState([]);
@@ -716,20 +708,13 @@ export default function Home() {
 																						</span>
 																					</div>
 																					<div
-																						className={
-																							styles.abilityScoreGroup
-																						}>
-																						<span
-																							className={styles.abilityScore}>
-																							{ability.score}
-																						</span>
-																						<span
-																							className={
-																								styles.abilityModifier
-																							}>
-																							{formatAbilityModifier(
-																								ability.modifier
-																							)}
+																						className={styles.abilityScoreGroup}>
+																						<span className={styles.abilityScore}>
+																							{Number.isFinite(ability.total)
+																								? ability.total
+																								: Number.isFinite(ability.score)
+																								? ability.score
+																								: "--"}
 																						</span>
 																					</div>
 																				</li>

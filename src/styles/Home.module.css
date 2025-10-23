@@ -410,12 +410,6 @@
   font-weight: 600;
 }
 
-.abilityModifier {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #f6efe3;
-}
-
 .removeButton {
   justify-self: end;
   background: transparent;
