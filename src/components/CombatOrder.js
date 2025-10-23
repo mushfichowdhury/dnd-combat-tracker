@@ -268,7 +268,7 @@ const CombatOrder = ({
                                                                                                                         <div className={styles.combatantVitals}>
                                                                                                                                 {showImportedPartyHitPoints ? (
                                                                                                                                         <>
-                                                                                                                                                <div className={styles.currentHp}>
+                <div className={`${styles.currentHp} ${styles.importedPartyHp}`}>
                                                                                                                                                         <span className={styles.currentHpLabel}>
                                                                                                                                                                 HP
                                                                                                                                                         </span>
