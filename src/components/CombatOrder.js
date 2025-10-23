@@ -155,6 +155,75 @@ const CombatOrder = ({
 							}
 						}
 
+                                                                                        const enemyHitPointsData =
+                                                                                                showEnemyHitPoints ? combatant.hitPoints : undefined;
+                                                                                        let enemyCurrentValue = "";
+                                                                                        if (showEnemyHitPoints) {
+                                                                                                if (
+                                                                                                        enemyHitPointsData &&
+                                                                                                        typeof enemyHitPointsData === "object"
+                                                                                                ) {
+                                                                                                        const potentialCurrent =
+                                                                                                                enemyHitPointsData.current ??
+                                                                                                                enemyHitPointsData.value ??
+                                                                                                                enemyHitPointsData.hp ??
+                                                                                                                enemyHitPointsData;
+                                                                                                        if (
+                                                                                                                potentialCurrent !== undefined &&
+                                                                                                                potentialCurrent !== null &&
+                                                                                                                potentialCurrent !== ""
+                                                                                                        ) {
+                                                                                                                enemyCurrentValue = String(potentialCurrent);
+                                                                                                        }
+                                                                                                } else if (
+                                                                                                        enemyHitPointsData !== undefined &&
+                                                                                                        enemyHitPointsData !== null &&
+                                                                                                        enemyHitPointsData !== ""
+                                                                                                ) {
+                                                                                                        enemyCurrentValue = String(enemyHitPointsData);
+                                                                                                }
+                                                                                        }
+
+                                                                                        let enemyMaxDisplay = "";
+                                                                                        if (showEnemyHitPoints) {
+                                                                                                if (
+                                                                                                        enemyHitPointsData &&
+                                                                                                        typeof enemyHitPointsData === "object"
+                                                                                                ) {
+                                                                                                        const potentialMax =
+                                                                                                                enemyHitPointsData.max ??
+                                                                                                                enemyHitPointsData.total ??
+                                                                                                                enemyHitPointsData.maximum ??
+                                                                                                                enemyHitPointsData.maxHitPoints ??
+                                                                                                                enemyHitPointsData.hitPointsMax;
+                                                                                                        if (
+                                                                                                                potentialMax !== undefined &&
+                                                                                                                potentialMax !== null &&
+                                                                                                                potentialMax !== ""
+                                                                                                        ) {
+                                                                                                                enemyMaxDisplay = String(potentialMax);
+                                                                                                        }
+                                                                                                }
+
+                                                                                                if (!enemyMaxDisplay) {
+                                                                                                        const rawMax = combatant.maxHitPoints;
+
+                                                                                                        if (
+                                                                                                                rawMax !== undefined &&
+                                                                                                                rawMax !== null &&
+                                                                                                                rawMax !== ""
+                                                                                                        ) {
+                                                                                                                enemyMaxDisplay = String(rawMax);
+                                                                                                        }
+                                                                                                }
+                                                                                        }
+
+                                                                                        const importedPartyCurrentDisplay =
+                                                                                                showImportedPartyHitPoints &&
+                                                                                                partyCurrentValue !== undefined &&
+                                                                                                partyCurrentValue !== null
+                                                                                                        ? String(partyCurrentValue)
+                                                                                                        : "--";
 						const importedPartyCurrentDisplay =
 							showImportedPartyHitPoints &&
 							partyCurrentValue !== undefined &&
@@ -181,6 +250,191 @@ const CombatOrder = ({
 								? enemyNote
 								: `${enemyNote.slice(0, ENEMY_NOTE_PREVIEW_LENGTH).trimEnd()}…`;
 
+                									return (
+                										<li
+                											key={combatant.id}
+                											className={`${styles.combatant} ${
+                												index === highlightedIndex ? styles.activeCombatant : ""
+                											}`}>
+                											<div className={styles.combatantContent}>
+                												<div className={styles.combatantInfo}>
+                													<h3>
+                														{combatant.name}
+                														<span className={styles.tag}>
+                															{combatant.type === "party" ? "Party" : "Enemy"}
+                														</span>
+                													</h3>
+                													<p className={styles.statLine}>
+                														Initiative:{" "}
+                														<strong>
+                															{formatInitiativeDisplay(combatant.initiative)}
+                														</strong>
+                													</p>
+                												</div>
+                                                                                                                {shouldRenderVitals && (
+                                                                                                                        <div className={styles.combatantVitals}>
+                                                                                                                                {showImportedPartyHitPoints ? (
+                                                                                                                                        <>
+                                                                                                                                                <div className={styles.currentHp}>
+                                                                                                                                                        <span className={styles.currentHpLabel}>
+                                                                                                                                                                HP
+                                                                                                                                                        </span>
+                                                                                                                                                        <span
+                                                                                                                                                                className={`${styles.currentHpValue} ${
+                                                                                                                                                                        isLowHitPoints ? styles.lowHp : ""
+                                                                                                                                                                }`}>
+                                                                                                                                                                {importedPartyCurrentDisplay}
+                                                                                                                                                        </span>
+                                                                                                                                                        {importedPartyMaxDisplay ? (
+                                                                                                                                                                <span className={styles.currentHpMax}>
+                                                                                                                                                                        / {importedPartyMaxDisplay}
+                                                                                                                                                                </span>
+                                                                                                                                                        ) : null}
+                                                                                                                                                </div>
+                                                                                                                                                {combatant.hitPoints.temporary ? (
+                                                                                                                                                        <span className={styles.tempHpNote}>
+                                                                                                                                                                {`(+${combatant.hitPoints.temporary} temp)`}
+                                                                                                                                                        </span>
+                                                                                                                                                ) : null}
+                                                                                                                                        </>
+                                                                                                                                ) : showManualPartyControls ? (
+                                                                                                                                        <>
+                <label className={styles.currentHp}>
+                        <span className={styles.currentHpLabel}>
+                                HP
+                        </span>
+                        <input
+                                type='number'
+                                                                                                                                                                className={`${styles.enemyHpInput} ${
+                                                                                                                                                                        isLowHitPoints ? styles.lowHp : ""
+                                                                                                                                                                }`}
+                                                                                                                                                                value={manualPartyCurrentValue}
+                                                                                                                                                                onChange={(event) =>
+                                                                                                                                                                        handleManualPartyHitPointsChange(
+                                                                                                                                                                                combatant.id,
+                                                                                                                                                                                event.target.value
+                                                                                                                                                                        )
+                                                                                                                                                                }
+                                                                                                                                                                placeholder='--'
+                                                                                                                                                                inputMode='numeric'
+                                                                                                                                                        />
+                                                                                                                                                        {manualPartyMaxDisplay ? (
+                                                                                                                                                                <span className={styles.currentHpMax}>
+                                                                                                                                                                        / {manualPartyMaxDisplay}
+                                                                                                                                                                </span>
+                                                                                                                                                        ) : null}
+                                                                                                                                                </label>
+                                                                                                                                                <form
+                                                                                                                                                        className={styles.enemyDamageForm}
+                                                                                                                                                        onSubmit={(event) => {
+                                                                                                                                                                event.preventDefault();
+                                                                                                                                                                applyManualPartyDamage(combatant.id);
+                                                                                                                                                        }}>
+                                                                                                                                                        <button type='submit' className={styles.enemyDamageButton}>
+                                                                                                                                                                dmg
+                                                                                                                                                        </button>
+                                                                                                                                                        <input
+                                                                                                                                                                type='number'
+                                                                                                                                                                className={styles.enemyDamageInput}
+                                                                                                                                                                value={partyDamageInputs[combatant.id] ?? ""}
+                                                                                                                                                                onChange={(event) =>
+                                                                                                                                                                        handleManualPartyDamageInputChange(
+                                                                                                                                                                                combatant.id,
+                                                                                                                                                                                event.target.value
+                                                                                                                                                                        )
+                                                                                                                                                                }
+                                                                                                                                                                min='0'
+                                                                                                                                                                inputMode='numeric'
+                                                                                                                                                                aria-label='Damage amount'
+                                                                                                                                                        />
+                                                                                                                                                </form>
+                                                                                                                                        </>
+                                                                                                                                ) : (
+                                                                                                                                        <>
+                <label className={styles.currentHp}>
+                        <span className={styles.currentHpLabel}>
+                                HP
+                        </span>
+                        <input
+                                type='text'
+                                className={styles.enemyHpInput}
+                                value={enemyCurrentValue}
+                                onChange={(event) =>
+                                        handleEnemyHitPointsChange(
+                                                combatant.id,
+                                                event.target.value
+                                        )
+                                }
+                                placeholder='--'
+                        />
+                        {enemyMaxDisplay ? (
+                                <span className={styles.currentHpMax}>
+                                        / {enemyMaxDisplay}
+                                </span>
+                        ) : null}
+                </label>
+                                                                                                                                                <form
+                                                                                                                                                        className={styles.enemyDamageForm}
+                                                                                                                                                        onSubmit={(event) => {
+                                                                                                                                                                event.preventDefault();
+                                                                                                                                                                applyEnemyDamage(combatant.id);
+                                                                                                                                                        }}>
+                                                                                                                                                        <button type='submit' className={styles.enemyDamageButton}>
+                                                                                                                                                                dmg
+                                                                                                                                                        </button>
+                                                                                                                                                        <input
+                                                                                                                                                                type='number'
+                                                                                                                                                                className={styles.enemyDamageInput}
+                                                                                                                                                                value={enemyDamageInputs[combatant.id] ?? ""}
+                                                                                                                                                                onChange={(event) =>
+                                                                                                                                                                        handleEnemyDamageInputChange(
+                                                                                                                                                                                combatant.id,
+                                                                                                                                                                                event.target.value
+                                                                                                                                                                        )
+                                                                                                                                                                }
+                                                                                                                                                                min='0'
+                                                                                                                                                                inputMode='numeric'
+                                                                                                                                                                aria-label='Damage amount'
+                                                                                                                                                        />
+                                                                                                                                                </form>
+                                                                                                                                        </>
+                                                                                                                                )}
+                                                                                                                        </div>
+                                                                                                                )}
+                											</div>
+                											{combatant.type === "enemy" && (
+                												<div className={styles.combatantDetails}>
+                													{combatant.armorClass && (
+                														<span>AC {combatant.armorClass}</span>
+                													)}
+                													{hasEnemyNote && (
+                														<div className={styles.enemyNotes}>
+                															<span className={styles.enemyNotesText}>
+                																{displayedEnemyNote}
+                															</span>
+                															{shouldTruncateEnemyNote && (
+                																<button
+                																	type='button'
+                																	className={styles.expandNotesButton}
+                																	onClick={() =>
+                																		toggleEnemyNotesExpansion(combatant.id)
+                																	}>
+                																	{isEnemyNoteExpanded
+                																		? "Show less"
+                																		: "Read more"}
+                																</button>
+                															)}
+                														</div>
+                													)}
+                												</div>
+                											)}
+                										</li>
+                									);
+                								})}
+                							</ol>
+                						)}
+                					</section>
+        );
 						return (
 							<li
 								key={combatant.id}

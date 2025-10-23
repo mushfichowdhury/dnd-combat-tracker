@@ -763,20 +763,38 @@ export default function Home() {
 					.filter((action) => action.name || action.description)
 			: [];
 
-		setEnemies((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: enemyForm.name.trim(),
-				armorClass: enemyForm.armorClass.trim(),
-				hitPoints: enemyForm.hitPoints.trim(),
-				initiative: Number(enemyForm.initiative) || 0,
-				speed: speedValue,
-				abilityScores: sanitizedAbilityScores,
-				actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
-				notes: enemyForm.notes.trim(),
-			},
-		]);
+                const trimmedHitPoints = enemyForm.hitPoints.trim();
+                const numericHitPoints = Number(trimmedHitPoints);
+                const parsedHitPoints =
+                        trimmedHitPoints === ""
+                                ? ""
+                                : Number.isFinite(numericHitPoints)
+                                ? numericHitPoints
+                                : trimmedHitPoints;
+                const parsedMaxHitPoints =
+                        trimmedHitPoints === ""
+                                ? undefined
+                                : Number.isFinite(numericHitPoints)
+                                ? numericHitPoints
+                                : trimmedHitPoints;
+
+                setEnemies((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: enemyForm.name.trim(),
+                                armorClass: enemyForm.armorClass.trim(),
+                                hitPoints: parsedHitPoints,
+                                ...(parsedMaxHitPoints !== undefined
+                                        ? { maxHitPoints: parsedMaxHitPoints }
+                                        : {}),
+                                initiative: Number(enemyForm.initiative) || 0,
+                                speed: speedValue,
+                                abilityScores: sanitizedAbilityScores,
+                                actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
+                                notes: enemyForm.notes.trim(),
+                        },
+                ]);
 		setEnemyForm(createEmptyEnemyForm());
 	};
 
@@ -806,6 +824,274 @@ export default function Home() {
 		});
 	};
 
+        const handleEnemyHitPointsChange = (id, value) => {
+                const sanitizeHitPointEntry = (raw) => {
+                        if (raw === undefined || raw === null) {
+                                return undefined;
+                        }
+
+                        const stringValue = typeof raw === "string" ? raw : String(raw);
+                        const trimmedValue = stringValue.trim();
+
+                        if (trimmedValue === "") {
+                                return undefined;
+                        }
+
+                        const numericValue = Number(trimmedValue);
+
+                        if (Number.isFinite(numericValue)) {
+                                return numericValue;
+                        }
+
+                        return trimmedValue;
+                };
+
+                setEnemies((prev) =>
+                        prev.map((enemy) => {
+                                if (enemy.id !== id) {
+                                        return enemy;
+                                }
+
+                                const rawValue = typeof value === "string" ? value : String(value ?? "");
+                                const trimmedValue = rawValue.trim();
+
+                                if (trimmedValue === "") {
+                                        return {
+                                                ...enemy,
+                                                hitPoints: "",
+                                        };
+                                }
+
+                                const slashIndex = trimmedValue.indexOf("/");
+
+                                if (slashIndex !== -1) {
+                                        const currentPart = trimmedValue.slice(0, slashIndex).trim();
+                                        const maxPart = trimmedValue.slice(slashIndex + 1).trim();
+                                        const sanitizedCurrent = sanitizeHitPointEntry(currentPart);
+                                        const sanitizedMax = sanitizeHitPointEntry(maxPart);
+
+                                        const nextEnemy = {
+                                                ...enemy,
+                                                hitPoints:
+                                                        sanitizedCurrent !== undefined
+                                                                ? sanitizedCurrent
+                                                                : "",
+                                        };
+
+                                        if (sanitizedMax !== undefined) {
+                                                nextEnemy.maxHitPoints = sanitizedMax;
+                                        } else if (enemy.maxHitPoints !== undefined) {
+                                                nextEnemy.maxHitPoints = enemy.maxHitPoints;
+                                        }
+
+                                        return nextEnemy;
+                                }
+
+                                const sanitizedCurrent = sanitizeHitPointEntry(trimmedValue);
+
+                                const nextEnemy = {
+                                        ...enemy,
+                                        hitPoints: sanitizedCurrent !== undefined ? sanitizedCurrent : "",
+                                };
+
+                                if (
+                                        sanitizedCurrent !== undefined &&
+                                        enemy.maxHitPoints === undefined
+                                ) {
+                                        nextEnemy.maxHitPoints = sanitizedCurrent;
+                                }
+
+                                return nextEnemy;
+                        })
+                );
+        };
+
+        const handleManualPartyHitPointsChange = (id, value) => {
+                setPartyMembers((prev) =>
+                        prev.map((member) => {
+                                if (member.id !== id || member.source === "dndbeyond") {
+                                        return member;
+                                }
+
+                                const rawValue = typeof value === "string" ? value : String(value ?? "");
+                                const trimmed = rawValue.trim();
+                                const numericValue = Number(trimmed);
+                                const nextCurrent =
+                                        trimmed === ""
+                                                ? undefined
+                                                : Number.isFinite(numericValue)
+                                                ? numericValue
+                                                : trimmed;
+
+                                const previousHitPoints =
+                                        typeof member.hitPoints === "object" && member.hitPoints !== null
+                                                ? member.hitPoints
+                                                : {};
+                                const nextHitPoints = { ...previousHitPoints };
+
+                                if (nextCurrent === undefined) {
+                                        delete nextHitPoints.current;
+                                } else {
+                                        nextHitPoints.current = nextCurrent;
+                                }
+
+                                const hasValues = Object.values(nextHitPoints).some(
+                                        (entry) => entry !== undefined && entry !== null && entry !== ""
+                                );
+
+                                return {
+                                        ...member,
+                                        hitPoints: hasValues ? nextHitPoints : undefined,
+                                };
+                        })
+                );
+        };
+
+        const handleEnemyDamageInputChange = (id, value) => {
+                setEnemyDamageInputs((prev) => ({
+                        ...prev,
+                        [id]: value,
+                }));
+        };
+
+        const clearEnemyDamageInput = (id) => {
+                setEnemyDamageInputs((prev) => {
+                        if (!(id in prev)) {
+                                return prev;
+                        }
+
+                        const next = { ...prev };
+                        delete next[id];
+                        return next;
+                });
+        };
+
+        const handleManualPartyDamageInputChange = (id, value) => {
+                setPartyDamageInputs((prev) => ({
+                        ...prev,
+                        [id]: value,
+                }));
+        };
+
+        const clearManualPartyDamageInput = (id) => {
+                setPartyDamageInputs((prev) => {
+                        if (!(id in prev)) {
+                                return prev;
+                        }
+
+                        const next = { ...prev };
+                        delete next[id];
+                        return next;
+                });
+        };
+
+        const applyEnemyDamage = (id) => {
+                const rawDamage = enemyDamageInputs[id];
+                const damageValue = Number(rawDamage);
+
+                if (!Number.isFinite(damageValue)) {
+                        clearEnemyDamageInput(id);
+                        return;
+                }
+
+                const sanitizedDamage = Math.max(0, damageValue);
+
+                setEnemies((prev) =>
+                        prev.map((enemy) => {
+                                if (enemy.id !== id) {
+                                        return enemy;
+                                }
+
+                                const rawHitPoints = enemy.hitPoints;
+                                const currentHitPoints =
+                                        typeof rawHitPoints === "number"
+                                                ? rawHitPoints
+                                                : Number(rawHitPoints);
+
+                                if (!Number.isFinite(currentHitPoints)) {
+                                        return enemy;
+                                }
+
+                                const nextHitPoints = Math.max(0, currentHitPoints - sanitizedDamage);
+
+                                return {
+                                        ...enemy,
+                                        hitPoints:
+                                                typeof rawHitPoints === "number"
+                                                        ? nextHitPoints
+                                                        : String(nextHitPoints),
+                                };
+                        })
+                );
+
+                clearEnemyDamageInput(id);
+        };
+
+        const applyManualPartyDamage = (id) => {
+                const rawDamage = partyDamageInputs[id];
+                const damageValue = Number(rawDamage);
+
+                if (!Number.isFinite(damageValue)) {
+                        clearManualPartyDamageInput(id);
+                        return;
+                }
+
+                const sanitizedDamage = Math.max(0, damageValue);
+
+                setPartyMembers((prev) =>
+                        prev.map((member) => {
+                                if (member.id !== id || member.source === "dndbeyond") {
+                                        return member;
+                                }
+
+                                const hitPoints = member.hitPoints;
+                                let currentValue;
+
+                                if (hitPoints && typeof hitPoints === "object") {
+                                        if (
+                                                hitPoints.current !== undefined &&
+                                                hitPoints.current !== null &&
+                                                hitPoints.current !== ""
+                                        ) {
+                                                currentValue = hitPoints.current;
+                                        } else if (
+                                                hitPoints.value !== undefined &&
+                                                hitPoints.value !== null &&
+                                                hitPoints.value !== ""
+                                        ) {
+                                                currentValue = hitPoints.value;
+                                        } else if (
+                                                hitPoints.hp !== undefined &&
+                                                hitPoints.hp !== null &&
+                                                hitPoints.hp !== ""
+                                        ) {
+                                                currentValue = hitPoints.hp;
+                                        }
+                                } else {
+                                        currentValue = hitPoints;
+                                }
+
+                                const numericCurrent = Number(currentValue);
+
+                                if (!Number.isFinite(numericCurrent)) {
+                                        return member;
+                                }
+
+                                const nextHitPointsValue = Math.max(0, numericCurrent - sanitizedDamage);
+                                const nextHitPoints =
+                                        hitPoints && typeof hitPoints === "object"
+                                                ? { ...hitPoints, current: nextHitPointsValue }
+                                                : { current: nextHitPointsValue };
+
+                                return {
+                                        ...member,
+                                        hitPoints: nextHitPoints,
+                                };
+                        })
+                );
+
+                clearManualPartyDamageInput(id);
+        };
 	const handleEnemyHitPointsChange = (id, value) => {
 		setEnemies((prev) =>
 			prev.map((enemy) => {
