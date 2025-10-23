@@ -678,6 +678,7 @@
 	display: flex;
 	flex-direction: column;
 	align-items: flex-end;
+	align-self: center;
 	gap: 6px;
 }
 
@@ -690,16 +691,10 @@
 }
 
 .currentHp {
-        display: flex;
-        align-items: baseline;
-        gap: 6px;
-        font-weight: 600;
-}
-
-.importedPartyHp {
-        align-items: center;
-        align-self: center;
-        text-align: center;
+	display: flex;
+	align-items: baseline;
+	gap: 6px;
+	font-weight: 600;
 }
 
 .currentHpLabel {
