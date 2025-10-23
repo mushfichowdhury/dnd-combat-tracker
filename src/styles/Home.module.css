@@ -155,86 +155,86 @@
 
 .inputGroup input:focus,
 .inputGroup textarea:focus {
-        border-color: #d4a373;
-        transform: translateY(-1px);
+	border-color: #d4a373;
+	transform: translateY(-1px);
 }
 
 .monsterSearchContainer {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
 }
 
 .monsterSearchDropdown {
-        position: absolute;
-        top: calc(100% + 6px);
-        left: 0;
-        right: 0;
-        background: rgba(36, 25, 16, 0.95);
-        border: 1px solid rgba(224, 185, 112, 0.3);
-        border-radius: 12px;
-        padding: 12px;
-        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
-        max-height: 280px;
-        overflow-y: auto;
-        z-index: 5;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+	position: absolute;
+	top: calc(100% + 6px);
+	left: 0;
+	right: 0;
+	background: rgba(36, 25, 16, 0.95);
+	border: 1px solid rgba(224, 185, 112, 0.3);
+	border-radius: 12px;
+	padding: 12px;
+	box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+	max-height: 280px;
+	overflow-y: auto;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .monsterSearchResults {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .monsterResultButton {
-        width: 100%;
-        text-align: left;
-        background: rgba(55, 40, 27, 0.7);
-        border: 1px solid transparent;
-        border-radius: 10px;
-        padding: 10px 12px;
-        color: inherit;
-        font: inherit;
-        cursor: pointer;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+	width: 100%;
+	text-align: left;
+	background: rgba(55, 40, 27, 0.7);
+	border: 1px solid transparent;
+	border-radius: 10px;
+	padding: 10px 12px;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .monsterResultButton:hover,
 .monsterResultButton:focus-visible {
-        background: rgba(85, 60, 40, 0.9);
-        border-color: rgba(224, 185, 112, 0.5);
-        transform: translateY(-1px);
-        outline: none;
+	background: rgba(85, 60, 40, 0.9);
+	border-color: rgba(224, 185, 112, 0.5);
+	transform: translateY(-1px);
+	outline: none;
 }
 
 .monsterResultName {
-        font-weight: 600;
-        color: #f6efe3;
+	font-weight: 600;
+	color: #f6efe3;
 }
 
 .monsterResultMeta {
-        font-size: 0.85rem;
-        color: rgba(246, 239, 227, 0.7);
+	font-size: 0.85rem;
+	color: rgba(246, 239, 227, 0.7);
 }
 
 .monsterSearchMessage {
-        margin: 0;
-        font-size: 0.9rem;
-        color: rgba(246, 239, 227, 0.75);
+	margin: 0;
+	font-size: 0.9rem;
+	color: rgba(246, 239, 227, 0.75);
 }
 
 .monsterSearchError {
-        color: #f7b9b9;
+	color: #f7b9b9;
 }
 
 .fieldset {
@@ -247,41 +247,41 @@
 }
 
 .fieldset legend {
-        padding: 0 8px;
-        font-weight: 600;
-        color: #e0b970;
+	padding: 0 8px;
+	font-weight: 600;
+	color: #e0b970;
 }
 
 .abilityScoreFields {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-        gap: 12px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+	gap: 12px;
 }
 
 .actionList {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
+	display: flex;
+	flex-direction: column;
+	gap: 16px;
 }
 
 .actionItem {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding: 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(224, 185, 112, 0.25);
-        background: rgba(36, 25, 16, 0.5);
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 16px;
+	border-radius: 12px;
+	border: 1px solid rgba(224, 185, 112, 0.25);
+	background: rgba(36, 25, 16, 0.5);
 }
 
 .actionItem .secondaryButton {
-        align-self: flex-start;
+	align-self: flex-start;
 }
 
 .actionFooter {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
 }
 
 .primaryButton,
@@ -397,39 +397,39 @@
 }
 
 .statBlock span {
-        font-weight: 600;
-        color: #d4a373;
+	font-weight: 600;
+	color: #d4a373;
 }
 
 .abilityScoreList {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
-        gap: 8px;
-        margin-top: 8px;
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+	gap: 8px;
+	margin-top: 8px;
 }
 
 .abilityScoreListItem {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        align-items: center;
-        padding: 8px 10px;
-        border-radius: 10px;
-        background: rgba(36, 25, 16, 0.6);
-        border: 1px solid rgba(224, 185, 112, 0.25);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	align-items: center;
+	padding: 8px 10px;
+	border-radius: 10px;
+	background: rgba(36, 25, 16, 0.6);
+	border: 1px solid rgba(224, 185, 112, 0.25);
 }
 
 .abilityScoreListItem span {
-        font-size: 0.75rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        color: #d4a373;
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: #d4a373;
 }
 
 .abilityScoreListItem strong {
-        font-size: 1.05rem;
-        color: #f6efe3;
+	font-size: 1.05rem;
+	color: #f6efe3;
 }
 
 .notes {
@@ -439,32 +439,32 @@
 }
 
 .attackList h4 {
-        margin: 8px 0 4px;
-        font-size: 1rem;
-        color: #f6efe3;
+	margin: 8px 0 4px;
+	font-size: 1rem;
+	color: #f6efe3;
 }
 
 .attackList ul {
-        list-style: disc;
-        margin: 0 0 0 20px;
-        padding: 0;
-        display: grid;
-        gap: 4px;
+	list-style: disc;
+	margin: 0 0 0 20px;
+	padding: 0;
+	display: grid;
+	gap: 4px;
 }
 
 .attackList li {
-        color: rgba(246, 239, 227, 0.85);
-        line-height: 1.4;
+	color: rgba(246, 239, 227, 0.85);
+	line-height: 1.4;
 }
 
 .attackList li strong {
-        display: block;
-        color: #f6efe3;
+	display: block;
+	color: #f6efe3;
 }
 
 .attackList li p {
-        margin: 4px 0 0;
-        color: rgba(246, 239, 227, 0.75);
+	margin: 4px 0 0;
+	color: rgba(246, 239, 227, 0.75);
 }
 
 .statsDropdown {
@@ -704,73 +704,74 @@
 }
 
 .currentHpValue {
-        font-size: 1.6rem;
-        color: #f6efe3;
-        line-height: 1;
+	font-size: 1.6rem;
+	color: #f6efe3;
+	line-height: 1;
 }
 
 .enemyHpInput {
-        width: 90px;
-        border: 1px solid rgba(224, 185, 112, 0.35);
-        border-radius: 10px;
-        background: rgba(36, 25, 16, 0.7);
-        color: #f6efe3;
-        padding: 8px 12px;
-        font-size: 1rem;
-        font-weight: 600;
-        text-align: right;
-        outline: none;
-        transition: border-color 0.2s ease, transform 0.2s ease;
+	width: 90px;
+	border: 1px solid rgba(224, 185, 112, 0.35);
+	border-radius: 10px;
+	background: rgba(36, 25, 16, 0.7);
+	color: #f6efe3;
+	padding: 8px 12px;
+	font-size: 1rem;
+	font-weight: 600;
+	text-align: right;
+	outline: none;
+	transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .enemyHpInput:focus {
-        border-color: #d4a373;
-        transform: translateY(-1px);
+	border-color: #d4a373;
+	transform: translateY(-1px);
 }
 
 .enemyDamageForm {
-        display: flex;
-        align-items: center;
-        gap: 8px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
 }
 
 .enemyDamageInput {
-        width: 70px;
-        border: 1px solid rgba(224, 185, 112, 0.35);
-        border-radius: 8px;
-        background: rgba(36, 25, 16, 0.7);
-        color: #f6efe3;
-        padding: 6px 10px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        text-align: right;
-        outline: none;
-        transition: border-color 0.2s ease, transform 0.2s ease;
+	width: 70px;
+	border: 1px solid rgba(224, 185, 112, 0.35);
+	border-radius: 8px;
+	background: rgba(36, 25, 16, 0.7);
+	color: #f6efe3;
+	padding: 6px 10px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	text-align: right;
+	outline: none;
+	transition: border-color 0.2s ease, transform 0.2s ease;
 }
 
 .enemyDamageInput:focus {
-        border-color: #d4a373;
-        transform: translateY(-1px);
+	border-color: #d4a373;
+	transform: translateY(-1px);
 }
 
 .enemyDamageButton {
-        border: 1px solid rgba(224, 185, 112, 0.35);
-        border-radius: 8px;
-        background: rgba(212, 163, 115, 0.15);
-        color: #e0b970;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 6px 10px;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+	border: 1px solid rgba(224, 185, 112, 0.35);
+	border-radius: 8px;
+	background: rgba(212, 163, 115, 0.15);
+	color: #e0b970;
+	font-size: 0.75rem;
+	font-weight: 600;
+	padding: 6px 10px;
+	cursor: pointer;
+	transition: border-color 0.2s ease, background-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 .enemyDamageButton:hover,
 .enemyDamageButton:focus-visible {
-        border-color: #d4a373;
-        background: rgba(212, 163, 115, 0.25);
-        transform: translateY(-1px);
-        outline: none;
+	border-color: #d4a373;
+	background: rgba(212, 163, 115, 0.25);
+	transform: translateY(-1px);
+	outline: none;
 }
 
 .currentHpMax {
@@ -792,38 +793,38 @@
 }
 
 .combatantDetails {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        font-size: 0.9rem;
-        color: rgba(246, 239, 227, 0.75);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 10px;
+	font-size: 0.9rem;
+	color: rgba(246, 239, 227, 0.75);
 }
 
 .enemyNotes {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        flex-basis: 100%;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex-basis: 100%;
 }
 
 .enemyNotesText {
-        white-space: pre-line;
+	white-space: pre-line;
 }
 
 .expandNotesButton {
-        align-self: flex-start;
-        background: none;
-        border: none;
-        color: #e0b970;
-        font-size: 0.85rem;
-        font-weight: 600;
-        padding: 0;
-        cursor: pointer;
-        text-decoration: underline;
+	align-self: flex-start;
+	background: none;
+	border: none;
+	color: #e0b970;
+	font-size: 0.85rem;
+	font-weight: 600;
+	padding: 0;
+	cursor: pointer;
+	text-decoration: underline;
 }
 
 .expandNotesButton:hover {
-        color: #f2d79b;
+	color: #f2d79b;
 }
 
 .activeCombatant {
@@ -923,51 +924,51 @@
 		color: #7c3f1e;
 	}
 
-        .removeLink {
-                color: #b65c2c;
-        }
+	.removeLink {
+		color: #b65c2c;
+	}
 
-        .removeLink:hover {
-                color: #7c3f1e;
-        }
+	.removeLink:hover {
+		color: #7c3f1e;
+	}
 
-        .enemyHpInput {
-                background: rgba(255, 252, 245, 0.9);
-                color: #3a2a1a;
-                border-color: rgba(141, 109, 60, 0.25);
-        }
+	.enemyHpInput {
+		background: rgba(255, 252, 245, 0.9);
+		color: #3a2a1a;
+		border-color: rgba(141, 109, 60, 0.25);
+	}
 
-        .enemyHpInput:focus {
-                border-color: #b65c2c;
-        }
+	.enemyHpInput:focus {
+		border-color: #b65c2c;
+	}
 
-        .expandNotesButton {
-                color: #b65c2c;
-        }
+	.expandNotesButton {
+		color: #b65c2c;
+	}
 
-        .expandNotesButton:hover {
-                color: #7c3f1e;
-        }
+	.expandNotesButton:hover {
+		color: #7c3f1e;
+	}
 
-        .enemyDamageInput {
-                background: rgba(255, 252, 245, 0.85);
-                color: #3a2a1a;
-                border-color: rgba(141, 109, 60, 0.35);
-        }
+	.enemyDamageInput {
+		background: rgba(255, 252, 245, 0.85);
+		color: #3a2a1a;
+		border-color: rgba(141, 109, 60, 0.35);
+	}
 
-        .enemyDamageInput:focus {
-                border-color: rgba(141, 109, 60, 0.55);
-        }
+	.enemyDamageInput:focus {
+		border-color: rgba(141, 109, 60, 0.55);
+	}
 
-        .enemyDamageButton {
-                border-color: rgba(141, 109, 60, 0.35);
-                background: rgba(212, 163, 115, 0.18);
-                color: #7c3f1e;
-        }
+	.enemyDamageButton {
+		border-color: rgba(141, 109, 60, 0.35);
+		background: rgba(212, 163, 115, 0.18);
+		color: #7c3f1e;
+	}
 
-        .enemyDamageButton:hover,
-        .enemyDamageButton:focus-visible {
-                border-color: rgba(141, 109, 60, 0.55);
-                background: rgba(212, 163, 115, 0.28);
-        }
+	.enemyDamageButton:hover,
+	.enemyDamageButton:focus-visible {
+		border-color: rgba(141, 109, 60, 0.55);
+		background: rgba(212, 163, 115, 0.28);
+	}
 }
