@@ -39,9 +39,15 @@ export default async function handler(request, response) {
                 const results = Array.isArray(data.results) ? data.results : [];
 
                 const monsters = results.map((monster) => ({
+                        slug: monster.slug,
                         name: monster.name,
+                        size: monster.size,
+                        type: monster.type,
+                        alignment: monster.alignment,
+                        challenge_rating: monster.challenge_rating,
                         armor_class: monster.armor_class,
                         hit_points: monster.hit_points,
+                        speed: monster.speed,
                         ability_scores: {
                                 strength: monster.strength,
                                 dexterity: monster.dexterity,

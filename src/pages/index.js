@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 
@@ -54,34 +54,211 @@ const parseInitiativeValue = (value) => {
 };
 
 const formatInitiativeDisplay = (value) => {
-	if (typeof value === "number" && Number.isFinite(value)) {
-		return value;
-	}
+        if (typeof value === "number" && Number.isFinite(value)) {
+                return value;
+        }
 
-	if (typeof value === "string" && value.trim() !== "") {
-		return value.trim();
-	}
+        if (typeof value === "string" && value.trim() !== "") {
+                return value.trim();
+        }
 
-	return "--";
+        return "--";
+};
+
+const formatMonsterArmorClass = (armorClass) => {
+        if (Array.isArray(armorClass)) {
+                const parts = armorClass
+                        .map((entry) => {
+                                if (!entry) {
+                                        return null;
+                                }
+
+                                if (typeof entry === "number") {
+                                        return entry;
+                                }
+
+                                if (typeof entry === "object") {
+                                        const value = entry.value ?? entry.amount ?? entry.ac;
+                                        const type = entry.type ?? entry.notes;
+
+                                        if (value && type) {
+                                                return `${value} (${type})`;
+                                        }
+
+                                        if (value) {
+                                                return value;
+                                        }
+                                }
+
+                                return null;
+                        })
+                        .filter(Boolean);
+
+                return parts.join(", ");
+        }
+
+        if (
+                typeof armorClass === "number" ||
+                (typeof armorClass === "string" && armorClass.trim() !== "")
+        ) {
+                return armorClass;
+        }
+
+        return "";
+};
+
+const formatMonsterActions = (actions) => {
+        if (!Array.isArray(actions)) {
+                return "";
+        }
+
+        const formatted = actions
+                .map((action) => {
+                        if (!action) {
+                                return "";
+                        }
+
+                        const name = typeof action.name === "string" ? action.name.trim() : "";
+                        const description =
+                                typeof action.desc === "string" ? action.desc.trim() : "";
+
+                        if (name && description) {
+                                return `${name}: ${description}`;
+                        }
+
+                        return name || description;
+                })
+                .filter(Boolean);
+
+        return formatted.join("\n\n");
+};
+
+const mapMonsterToEnemyForm = (monster, previousForm = emptyEnemyForm) => {
+        if (!monster || typeof monster !== "object") {
+                return previousForm;
+        }
+
+        const formattedArmorClass = formatMonsterArmorClass(monster.armor_class);
+        const formattedActions = formatMonsterActions(monster.actions);
+
+        return {
+                ...previousForm,
+                name: monster.name ?? previousForm.name ?? "",
+                armorClass:
+                        formattedArmorClass !== ""
+                                ? String(formattedArmorClass)
+                                : previousForm.armorClass ?? "",
+                hitPoints:
+                        monster.hit_points !== undefined && monster.hit_points !== null
+                                ? String(monster.hit_points)
+                                : previousForm.hitPoints ?? "",
+                notes: formattedActions || previousForm.notes || "",
+        };
 };
 
 export default function Home() {
-	const [partyMembers, setPartyMembers] = useState([]);
-	const [enemies, setEnemies] = useState([]);
-	const [partyForm, setPartyForm] = useState(emptyPartyForm);
-	const [enemyForm, setEnemyForm] = useState(emptyEnemyForm);
+        const [partyMembers, setPartyMembers] = useState([]);
+        const [enemies, setEnemies] = useState([]);
+        const [partyForm, setPartyForm] = useState(emptyPartyForm);
+        const [enemyForm, setEnemyForm] = useState(emptyEnemyForm);
+        const [monsterSearch, setMonsterSearch] = useState("");
+        const [monsterResults, setMonsterResults] = useState([]);
+        const [isSearchingMonsters, setIsSearchingMonsters] = useState(false);
+        const [monsterSearchError, setMonsterSearchError] = useState("");
 	const [activeCombatantId, setActiveCombatantId] = useState(null);
 	const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
 	const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
 	const [dndBeyondError, setDndBeyondError] = useState("");
-	const [dndBeyondNotice, setDndBeyondNotice] = useState("");
-	const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
-	const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
+        const [dndBeyondNotice, setDndBeyondNotice] = useState("");
+        const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
+        const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
 
-	const createPartyMemberFromDndBeyond = (data) => {
-		if (!data || !data.name) {
-			return null;
-		}
+        useEffect(() => {
+                const searchTerm = monsterSearch.trim();
+
+                if (searchTerm.length < 2) {
+                        setMonsterResults([]);
+                        setMonsterSearchError("");
+                        setIsSearchingMonsters(false);
+                        return;
+                }
+
+                let isActive = true;
+                setIsSearchingMonsters(true);
+                setMonsterSearchError("");
+
+                const timeoutId = setTimeout(async () => {
+                        try {
+                                const response = await fetch(
+                                        `/api/monsters?query=${encodeURIComponent(searchTerm)}`
+                                );
+
+                                if (!isActive) {
+                                        return;
+                                }
+
+                                if (!response.ok) {
+                                        let errorMessage = "Failed to search for monsters.";
+                                        try {
+                                                const errorData = await response.json();
+                                                if (errorData?.error) {
+                                                        errorMessage = errorData.error;
+                                                }
+                                        } catch (error) {
+                                                console.error(error);
+                                        }
+
+                                        throw new Error(errorMessage);
+                                }
+
+                                const data = await response.json();
+
+                                if (!isActive) {
+                                        return;
+                                }
+
+                                const monsters = Array.isArray(data?.monsters)
+                                        ? data.monsters
+                                        : [];
+                                setMonsterResults(monsters);
+                                setMonsterSearchError("");
+                        } catch (error) {
+                                if (!isActive) {
+                                        return;
+                                }
+
+                                console.error(error);
+                                setMonsterResults([]);
+                                setMonsterSearchError(
+                                        error instanceof Error && error.message
+                                                ? error.message
+                                                : "Failed to search for monsters."
+                                );
+                        } finally {
+                                if (isActive) {
+                                        setIsSearchingMonsters(false);
+                                }
+                        }
+                }, 300);
+
+                return () => {
+                        isActive = false;
+                        clearTimeout(timeoutId);
+                };
+        }, [monsterSearch]);
+
+        const handleMonsterSelect = (monster) => {
+                setEnemyForm((prev) => mapMonsterToEnemyForm(monster, prev));
+                setMonsterSearch("");
+                setMonsterResults([]);
+                setMonsterSearchError("");
+                setIsSearchingMonsters(false);
+        };
+
+        const createPartyMemberFromDndBeyond = (data) => {
+                if (!data || !data.name) {
+                        return null;
+                }
 
 		const initiativeNumber = Number(data.initiative);
 		const levelNumber = Number(data.level);
@@ -511,10 +688,14 @@ export default function Home() {
 		[partyMembers]
 	);
 
-	return (
-		<>
-			<Head>
-				<title>D&D Combat Tracker</title>
+        const monsterSearchTerm = monsterSearch.trim();
+        const shouldShowMonsterDropdown =
+                monsterSearchTerm.length >= 2 || isSearchingMonsters || Boolean(monsterSearchError);
+
+        return (
+                <>
+                        <Head>
+                                <title>D&D Combat Tracker</title>
 				<meta
 					name='description'
 					content='Track party members, enemies, and turn order for your D&D combat encounters.'
@@ -855,11 +1036,111 @@ export default function Home() {
 								Capture statblocks, attacks, and initiatives for the creatures
 								your party faces.
 							</p>
-							<form onSubmit={handleEnemySubmit} className={styles.form}>
-								<div className={styles.formGrid}>
-									<label className={styles.inputGroup}>
-										<span>Creature Name</span>
-										<input
+                                                        <form onSubmit={handleEnemySubmit} className={styles.form}>
+                                                                <div className={styles.monsterSearchContainer}>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Search Monsters</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={monsterSearch}
+                                                                                        onChange={(event) =>
+                                                                                                setMonsterSearch(
+                                                                                                        event.target.value
+                                                                                                )
+                                                                                        }
+                                                                                        placeholder='Start typing to search Open5e monsters...'
+                                                                                        autoComplete='off'
+                                                                                />
+                                                                        </label>
+                                                                        {shouldShowMonsterDropdown && (
+                                                                                <div className={styles.monsterSearchDropdown}>
+                                                                                        {isSearchingMonsters && (
+                                                                                                <p className={styles.monsterSearchMessage}>
+                                                                                                        Searching monsters...
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {!isSearchingMonsters &&
+                                                                                        monsterSearchError && (
+                                                                                                <p
+                                                                                                        className={`${styles.monsterSearchMessage} ${styles.monsterSearchError}`}
+                                                                                                >
+                                                                                                        {monsterSearchError}
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {!isSearchingMonsters &&
+                                                                                        !monsterSearchError &&
+                                                                                        monsterResults.length === 0 &&
+                                                                                        monsterSearchTerm.length >= 2 && (
+                                                                                                <p className={styles.monsterSearchMessage}>
+                                                                                                        No monsters found.
+                                                                                                </p>
+                                                                                        )}
+                                                                                        {!isSearchingMonsters &&
+                                                                                        monsterResults.length > 0 && (
+                                                                                                <ul className={styles.monsterSearchResults}>
+                                                                                                        {monsterResults.map(
+                                                                                                                (monster, index) => {
+                                                                                                                        const key =
+                                                                                                                                monster.slug ??
+                                                                                                                                (monster.name
+                                                                                                                                        ? `${monster.name}-${index}`
+                                                                                                                                        : `monster-${index}`);
+
+                                                                                                                        const typeParts = [
+                                                                                                                                monster.size,
+                                                                                                                                monster.type,
+                                                                                                                        ]
+                                                                                                                                .filter((part) =>
+                                                                                                                                        typeof part ===
+                                                                                                                                                "string" &&
+                                                                                                                                        part.trim() !== ""
+                                                                                                                                )
+                                                                                                                                .map((part) => part.trim());
+
+                                                                                                                        const challengeRating =
+                                                                                                                                monster.challenge_rating !==
+                                                                                                                                        undefined &&
+                                                                                                                                monster.challenge_rating !==
+                                                                                                                                        null
+                                                                                                                                        ? `CR ${monster.challenge_rating}`
+                                                                                                                                        : "";
+
+                                                                                                                        const meta = [
+                                                                                                                                typeParts.join(" "),
+                                                                                                                                challengeRating,
+                                                                                                                        ]
+                                                                                                                                .filter((part) => part)
+                                                                                                                                .join(" • ");
+
+                                                                                                                        return (
+                                                                                                                                <li key={key}>
+                                                                                                                                        <button
+                                                                                                                                                type='button'
+                                                                                                                                                className={styles.monsterResultButton}
+                                                                                                                                                onClick={() => handleMonsterSelect(monster)}
+                                                                                                                                        >
+                                                                                                                                                <span className={styles.monsterResultName}>
+                                                                                                                                                        {monster.name || "Unnamed monster"}
+                                                                                                                                                </span>
+                                                                                                                                                {meta && (
+                                                                                                                                                        <span className={styles.monsterResultMeta}>
+                                                                                                                                                                {meta}
+                                                                                                                                                        </span>
+                                                                                                                                                )}
+                                                                                                                                        </button>
+                                                                                                                                </li>
+                                                                                                                        );
+                                                                                                                }
+                                                                                                        )}
+                                                                                                </ul>
+                                                                                        )}
+                                                                                </div>
+                                                                        )}
+                                                                </div>
+                                                                <div className={styles.formGrid}>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Creature Name</span>
+                                                                                <input
 											type='text'
 											value={enemyForm.name}
 											onChange={(event) =>
