@@ -14,56 +14,56 @@ const generateId = () => {
 };
 
 const emptyPartyForm = {
-        name: "",
-        initiative: "",
-        hitPointsCurrent: "",
-        hitPointsTotal: "",
+	name: "",
+	initiative: "",
+	hitPointsCurrent: "",
+	hitPointsTotal: "",
 };
 
 const parseManualPartyHitPoints = (currentValue, totalValue) => {
-        const parseValue = (value) => {
-                if (typeof value !== "string") {
-                        return undefined;
-                }
+	const parseValue = (value) => {
+		if (typeof value !== "string") {
+			return undefined;
+		}
 
-                const trimmed = value.trim();
+		const trimmed = value.trim();
 
-                if (trimmed === "") {
-                        return undefined;
-                }
+		if (trimmed === "") {
+			return undefined;
+		}
 
-                const numericValue = Number(trimmed);
+		const numericValue = Number(trimmed);
 
-                if (Number.isFinite(numericValue)) {
-                        return numericValue;
-                }
+		if (Number.isFinite(numericValue)) {
+			return numericValue;
+		}
 
-                return trimmed;
-        };
+		return trimmed;
+	};
 
-        const current = parseValue(currentValue);
-        const max = parseValue(totalValue);
+	const current = parseValue(currentValue);
+	const max = parseValue(totalValue);
 
-        if (current === undefined && max === undefined) {
-                return undefined;
-        }
+	if (current === undefined && max === undefined) {
+		return undefined;
+	}
 
-        const result = {};
+	const result = {};
 
-        if (current !== undefined) {
-                result.current = current;
-        }
+	if (current !== undefined) {
+		result.current = current;
+	}
 
-        if (max !== undefined) {
-                result.max = max;
-        }
+	if (max !== undefined) {
+		result.max = max;
+	}
 
-        return result;
+	return result;
 };
 
 const createEmptyAbilityScores = () =>
-        ABILITY_SCORE_CONFIG.reduce((accumulator, { key }) => {
-                accumulator[key] = "";
+	ABILITY_SCORE_CONFIG.reduce((accumulator, { key }) => {
+		accumulator[key] = "";
 		return accumulator;
 	}, {});
 
@@ -320,9 +320,9 @@ const mapMonsterToEnemyForm = (
 export default function Home() {
 	const [partyMembers, setPartyMembers] = useState([]);
 	const [enemies, setEnemies] = useState([]);
-        const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
-        const [enemyDamageInputs, setEnemyDamageInputs] = useState({});
-        const [partyDamageInputs, setPartyDamageInputs] = useState({});
+	const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
+	const [enemyDamageInputs, setEnemyDamageInputs] = useState({});
+	const [partyDamageInputs, setPartyDamageInputs] = useState({});
 	const [partyForm, setPartyForm] = useState(emptyPartyForm);
 	const [enemyForm, setEnemyForm] = useState(() => createEmptyEnemyForm());
 	const [monsterSearch, setMonsterSearch] = useState("");
@@ -509,27 +509,27 @@ export default function Home() {
 		};
 	};
 
-        const handlePartySubmit = (event) => {
-                event.preventDefault();
-                if (!partyForm.name.trim()) return;
+	const handlePartySubmit = (event) => {
+		event.preventDefault();
+		if (!partyForm.name.trim()) return;
 
-                const manualHitPoints = parseManualPartyHitPoints(
-                        partyForm.hitPointsCurrent,
-                        partyForm.hitPointsTotal
-                );
+		const manualHitPoints = parseManualPartyHitPoints(
+			partyForm.hitPointsCurrent,
+			partyForm.hitPointsTotal
+		);
 
-                setPartyMembers((prev) => [
-                        ...prev,
-                        {
-                                id: generateId(),
-                                name: partyForm.name.trim(),
-                                initiative: Number(partyForm.initiative) || 0,
-                                source: "manual",
-                                ...(manualHitPoints ? { hitPoints: manualHitPoints } : {}),
-                        },
-                ]);
-                setPartyForm(emptyPartyForm);
-        };
+		setPartyMembers((prev) => [
+			...prev,
+			{
+				id: generateId(),
+				name: partyForm.name.trim(),
+				initiative: Number(partyForm.initiative) || 0,
+				source: "manual",
+				...(manualHitPoints ? { hitPoints: manualHitPoints } : {}),
+			},
+		]);
+		setPartyForm(emptyPartyForm);
+	};
 
 	const handleDndBeyondImport = async (event) => {
 		event.preventDefault();
@@ -780,18 +780,18 @@ export default function Home() {
 		setEnemyForm(createEmptyEnemyForm());
 	};
 
-        const removePartyMember = (id) => {
-                setPartyMembers((prev) => prev.filter((member) => member.id !== id));
-                setPartyDamageInputs((prev) => {
-                        if (!(id in prev)) {
-                                return prev;
-                        }
+	const removePartyMember = (id) => {
+		setPartyMembers((prev) => prev.filter((member) => member.id !== id));
+		setPartyDamageInputs((prev) => {
+			if (!(id in prev)) {
+				return prev;
+			}
 
-                        const next = { ...prev };
-                        delete next[id];
-                        return next;
-                });
-        };
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
 
 	const removeEnemy = (id) => {
 		setEnemies((prev) => prev.filter((enemy) => enemy.id !== id));
@@ -806,207 +806,211 @@ export default function Home() {
 		});
 	};
 
-        const handleEnemyHitPointsChange = (id, value) => {
-                setEnemies((prev) =>
-                        prev.map((enemy) => {
-                                if (enemy.id !== id) {
-                                        return enemy;
-                                }
+	const handleEnemyHitPointsChange = (id, value) => {
+		setEnemies((prev) =>
+			prev.map((enemy) => {
+				if (enemy.id !== id) {
+					return enemy;
+				}
 
-                                return {
-                                        ...enemy,
-                                        hitPoints: value,
-                                };
-                        })
-                );
-        };
+				return {
+					...enemy,
+					hitPoints: value,
+				};
+			})
+		);
+	};
 
-        const handleManualPartyHitPointsChange = (id, value) => {
-                setPartyMembers((prev) =>
-                        prev.map((member) => {
-                                if (member.id !== id || member.source === "dndbeyond") {
-                                        return member;
-                                }
+	const handleManualPartyHitPointsChange = (id, value) => {
+		setPartyMembers((prev) =>
+			prev.map((member) => {
+				if (member.id !== id || member.source === "dndbeyond") {
+					return member;
+				}
 
-                                const rawValue = typeof value === "string" ? value : String(value ?? "");
-                                const trimmed = rawValue.trim();
-                                const numericValue = Number(trimmed);
-                                const nextCurrent =
-                                        trimmed === ""
-                                                ? undefined
-                                                : Number.isFinite(numericValue)
-                                                ? numericValue
-                                                : trimmed;
+				const rawValue =
+					typeof value === "string" ? value : String(value ?? "");
+				const trimmed = rawValue.trim();
+				const numericValue = Number(trimmed);
+				const nextCurrent =
+					trimmed === ""
+						? undefined
+						: Number.isFinite(numericValue)
+						? numericValue
+						: trimmed;
 
-                                const previousHitPoints =
-                                        typeof member.hitPoints === "object" && member.hitPoints !== null
-                                                ? member.hitPoints
-                                                : {};
-                                const nextHitPoints = { ...previousHitPoints };
+				const previousHitPoints =
+					typeof member.hitPoints === "object" && member.hitPoints !== null
+						? member.hitPoints
+						: {};
+				const nextHitPoints = { ...previousHitPoints };
 
-                                if (nextCurrent === undefined) {
-                                        delete nextHitPoints.current;
-                                } else {
-                                        nextHitPoints.current = nextCurrent;
-                                }
+				if (nextCurrent === undefined) {
+					delete nextHitPoints.current;
+				} else {
+					nextHitPoints.current = nextCurrent;
+				}
 
-                                const hasValues = Object.values(nextHitPoints).some(
-                                        (entry) => entry !== undefined && entry !== null && entry !== ""
-                                );
+				const hasValues = Object.values(nextHitPoints).some(
+					(entry) => entry !== undefined && entry !== null && entry !== ""
+				);
 
-                                return {
-                                        ...member,
-                                        hitPoints: hasValues ? nextHitPoints : undefined,
-                                };
-                        })
-                );
-        };
+				return {
+					...member,
+					hitPoints: hasValues ? nextHitPoints : undefined,
+				};
+			})
+		);
+	};
 
-        const handleEnemyDamageInputChange = (id, value) => {
-                setEnemyDamageInputs((prev) => ({
-                        ...prev,
-                        [id]: value,
-                }));
-        };
+	const handleEnemyDamageInputChange = (id, value) => {
+		setEnemyDamageInputs((prev) => ({
+			...prev,
+			[id]: value,
+		}));
+	};
 
-        const clearEnemyDamageInput = (id) => {
-                setEnemyDamageInputs((prev) => {
-                        if (!(id in prev)) {
-                                return prev;
-                        }
+	const clearEnemyDamageInput = (id) => {
+		setEnemyDamageInputs((prev) => {
+			if (!(id in prev)) {
+				return prev;
+			}
 
-                        const next = { ...prev };
-                        delete next[id];
-                        return next;
-                });
-        };
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
 
-        const handleManualPartyDamageInputChange = (id, value) => {
-                setPartyDamageInputs((prev) => ({
-                        ...prev,
-                        [id]: value,
-                }));
-        };
+	const handleManualPartyDamageInputChange = (id, value) => {
+		setPartyDamageInputs((prev) => ({
+			...prev,
+			[id]: value,
+		}));
+	};
 
-        const clearManualPartyDamageInput = (id) => {
-                setPartyDamageInputs((prev) => {
-                        if (!(id in prev)) {
-                                return prev;
-                        }
+	const clearManualPartyDamageInput = (id) => {
+		setPartyDamageInputs((prev) => {
+			if (!(id in prev)) {
+				return prev;
+			}
 
-                        const next = { ...prev };
-                        delete next[id];
-                        return next;
-                });
-        };
+			const next = { ...prev };
+			delete next[id];
+			return next;
+		});
+	};
 
-        const applyEnemyDamage = (id) => {
-                const rawDamage = enemyDamageInputs[id];
-                const damageValue = Number(rawDamage);
+	const applyEnemyDamage = (id) => {
+		const rawDamage = enemyDamageInputs[id];
+		const damageValue = Number(rawDamage);
 
-                if (!Number.isFinite(damageValue)) {
-                        clearEnemyDamageInput(id);
-                        return;
-                }
+		if (!Number.isFinite(damageValue)) {
+			clearEnemyDamageInput(id);
+			return;
+		}
 
-                const sanitizedDamage = Math.max(0, damageValue);
+		const sanitizedDamage = Math.max(0, damageValue);
 
-                setEnemies((prev) =>
-                        prev.map((enemy) => {
-                                if (enemy.id !== id) {
-                                        return enemy;
-                                }
+		setEnemies((prev) =>
+			prev.map((enemy) => {
+				if (enemy.id !== id) {
+					return enemy;
+				}
 
-                                const rawHitPoints = enemy.hitPoints;
-                                const currentHitPoints =
-                                        typeof rawHitPoints === "number"
-                                                ? rawHitPoints
-                                                : Number(rawHitPoints);
+				const rawHitPoints = enemy.hitPoints;
+				const currentHitPoints =
+					typeof rawHitPoints === "number"
+						? rawHitPoints
+						: Number(rawHitPoints);
 
-                                if (!Number.isFinite(currentHitPoints)) {
-                                        return enemy;
-                                }
+				if (!Number.isFinite(currentHitPoints)) {
+					return enemy;
+				}
 
-                                const nextHitPoints = Math.max(0, currentHitPoints - sanitizedDamage);
+				const nextHitPoints = Math.max(0, currentHitPoints - sanitizedDamage);
 
-                                return {
-                                        ...enemy,
-                                        hitPoints:
-                                                typeof rawHitPoints === "number"
-                                                        ? nextHitPoints
-                                                        : String(nextHitPoints),
-                                };
-                        })
-                );
+				return {
+					...enemy,
+					hitPoints:
+						typeof rawHitPoints === "number"
+							? nextHitPoints
+							: String(nextHitPoints),
+				};
+			})
+		);
 
-                clearEnemyDamageInput(id);
-        };
+		clearEnemyDamageInput(id);
+	};
 
-        const applyManualPartyDamage = (id) => {
-                const rawDamage = partyDamageInputs[id];
-                const damageValue = Number(rawDamage);
+	const applyManualPartyDamage = (id) => {
+		const rawDamage = partyDamageInputs[id];
+		const damageValue = Number(rawDamage);
 
-                if (!Number.isFinite(damageValue)) {
-                        clearManualPartyDamageInput(id);
-                        return;
-                }
+		if (!Number.isFinite(damageValue)) {
+			clearManualPartyDamageInput(id);
+			return;
+		}
 
-                const sanitizedDamage = Math.max(0, damageValue);
+		const sanitizedDamage = Math.max(0, damageValue);
 
-                setPartyMembers((prev) =>
-                        prev.map((member) => {
-                                if (member.id !== id || member.source === "dndbeyond") {
-                                        return member;
-                                }
+		setPartyMembers((prev) =>
+			prev.map((member) => {
+				if (member.id !== id || member.source === "dndbeyond") {
+					return member;
+				}
 
-                                const hitPoints = member.hitPoints;
-                                let currentValue;
+				const hitPoints = member.hitPoints;
+				let currentValue;
 
-                                if (hitPoints && typeof hitPoints === "object") {
-                                        if (
-                                                hitPoints.current !== undefined &&
-                                                hitPoints.current !== null &&
-                                                hitPoints.current !== ""
-                                        ) {
-                                                currentValue = hitPoints.current;
-                                        } else if (
-                                                hitPoints.value !== undefined &&
-                                                hitPoints.value !== null &&
-                                                hitPoints.value !== ""
-                                        ) {
-                                                currentValue = hitPoints.value;
-                                        } else if (
-                                                hitPoints.hp !== undefined &&
-                                                hitPoints.hp !== null &&
-                                                hitPoints.hp !== ""
-                                        ) {
-                                                currentValue = hitPoints.hp;
-                                        }
-                                } else {
-                                        currentValue = hitPoints;
-                                }
+				if (hitPoints && typeof hitPoints === "object") {
+					if (
+						hitPoints.current !== undefined &&
+						hitPoints.current !== null &&
+						hitPoints.current !== ""
+					) {
+						currentValue = hitPoints.current;
+					} else if (
+						hitPoints.value !== undefined &&
+						hitPoints.value !== null &&
+						hitPoints.value !== ""
+					) {
+						currentValue = hitPoints.value;
+					} else if (
+						hitPoints.hp !== undefined &&
+						hitPoints.hp !== null &&
+						hitPoints.hp !== ""
+					) {
+						currentValue = hitPoints.hp;
+					}
+				} else {
+					currentValue = hitPoints;
+				}
 
-                                const numericCurrent = Number(currentValue);
+				const numericCurrent = Number(currentValue);
 
-                                if (!Number.isFinite(numericCurrent)) {
-                                        return member;
-                                }
+				if (!Number.isFinite(numericCurrent)) {
+					return member;
+				}
 
-                                const nextHitPointsValue = Math.max(0, numericCurrent - sanitizedDamage);
-                                const nextHitPoints =
-                                        hitPoints && typeof hitPoints === "object"
-                                                ? { ...hitPoints, current: nextHitPointsValue }
-                                                : { current: nextHitPointsValue };
+				const nextHitPointsValue = Math.max(
+					0,
+					numericCurrent - sanitizedDamage
+				);
+				const nextHitPoints =
+					hitPoints && typeof hitPoints === "object"
+						? { ...hitPoints, current: nextHitPointsValue }
+						: { current: nextHitPointsValue };
 
-                                return {
-                                        ...member,
-                                        hitPoints: nextHitPoints,
-                                };
-                        })
-                );
+				return {
+					...member,
+					hitPoints: nextHitPoints,
+				};
+			})
+		);
 
-                clearManualPartyDamageInput(id);
-        };
+		clearManualPartyDamageInput(id);
+	};
 
 	const toggleEnemyNotesExpansion = (id) => {
 		setExpandedEnemyNotes((prev) => ({
@@ -1212,66 +1216,65 @@ export default function Home() {
 						</p>
 					</header>
 
-										<CombatOrder
-					        combatOrder={combatOrder}
-					        highlightedIndex={highlightedIndex}
-					        advanceTurn={advanceTurn}
-					        resetTurn={resetTurn}
-					        refreshDndBeyondHitPoints={refreshDndBeyondHitPoints}
-					        isRefreshingDndBeyondHp={isRefreshingDndBeyondHp}
-					        hasDndBeyondMembers={hasDndBeyondMembers}
-					        dndBeyondRefreshError={dndBeyondRefreshError}
-					        expandedEnemyNotes={expandedEnemyNotes}
-					        toggleEnemyNotesExpansion={toggleEnemyNotesExpansion}
-					        handleManualPartyHitPointsChange={handleManualPartyHitPointsChange}
-					        handleManualPartyDamageInputChange={handleManualPartyDamageInputChange}
-					        partyDamageInputs={partyDamageInputs}
-					        applyManualPartyDamage={applyManualPartyDamage}
-					        handleEnemyHitPointsChange={handleEnemyHitPointsChange}
-					        handleEnemyDamageInputChange={handleEnemyDamageInputChange}
-					        enemyDamageInputs={enemyDamageInputs}
-					        applyEnemyDamage={applyEnemyDamage}
+					<CombatOrder
+						combatOrder={combatOrder}
+						highlightedIndex={highlightedIndex}
+						advanceTurn={advanceTurn}
+						resetTurn={resetTurn}
+						refreshDndBeyondHitPoints={refreshDndBeyondHitPoints}
+						isRefreshingDndBeyondHp={isRefreshingDndBeyondHp}
+						hasDndBeyondMembers={hasDndBeyondMembers}
+						dndBeyondRefreshError={dndBeyondRefreshError}
+						expandedEnemyNotes={expandedEnemyNotes}
+						toggleEnemyNotesExpansion={toggleEnemyNotesExpansion}
+						handleManualPartyHitPointsChange={handleManualPartyHitPointsChange}
+						handleManualPartyDamageInputChange={
+							handleManualPartyDamageInputChange
+						}
+						partyDamageInputs={partyDamageInputs}
+						applyManualPartyDamage={applyManualPartyDamage}
+						handleEnemyHitPointsChange={handleEnemyHitPointsChange}
+						handleEnemyDamageInputChange={handleEnemyDamageInputChange}
+						enemyDamageInputs={enemyDamageInputs}
+						applyEnemyDamage={applyEnemyDamage}
 					/>
 
-
 					<div className={styles.sectionColumns}>
-												<PartyMembers
-						        partyMembers={partyMembers}
-						        partyForm={partyForm}
-						        setPartyForm={setPartyForm}
-						        handlePartySubmit={handlePartySubmit}
-						        handleDndBeyondImport={handleDndBeyondImport}
-						        handleDndBeyondCampaignImport={handleDndBeyondCampaignImport}
-						        dndBeyondIdentifier={dndBeyondIdentifier}
-						        setDndBeyondIdentifier={setDndBeyondIdentifier}
-						        dndBeyondNotice={dndBeyondNotice}
-						        dndBeyondError={dndBeyondError}
-						        isImportingDndBeyond={isImportingDndBeyond}
-						        removePartyMember={removePartyMember}
-						        handleImportedInitiativeChange={handleImportedInitiativeChange}
+						<PartyMembers
+							partyMembers={partyMembers}
+							partyForm={partyForm}
+							setPartyForm={setPartyForm}
+							handlePartySubmit={handlePartySubmit}
+							handleDndBeyondImport={handleDndBeyondImport}
+							handleDndBeyondCampaignImport={handleDndBeyondCampaignImport}
+							dndBeyondIdentifier={dndBeyondIdentifier}
+							setDndBeyondIdentifier={setDndBeyondIdentifier}
+							dndBeyondNotice={dndBeyondNotice}
+							dndBeyondError={dndBeyondError}
+							isImportingDndBeyond={isImportingDndBeyond}
+							removePartyMember={removePartyMember}
+							handleImportedInitiativeChange={handleImportedInitiativeChange}
 						/>
 
-
-												<Enemies
-						        enemyForm={enemyForm}
-						        setEnemyForm={setEnemyForm}
-						        handleEnemySubmit={handleEnemySubmit}
-						        monsterSearch={monsterSearch}
-						        setMonsterSearch={setMonsterSearch}
-						        shouldShowMonsterDropdown={shouldShowMonsterDropdown}
-						        isSearchingMonsters={isSearchingMonsters}
-						        monsterSearchError={monsterSearchError}
-						        monsterResults={monsterResults}
-						        monsterSearchTerm={monsterSearchTerm}
-						        handleMonsterSelect={handleMonsterSelect}
-						        handleEnemyAbilityScoreChange={handleEnemyAbilityScoreChange}
-						        handleEnemyActionChange={handleEnemyActionChange}
-						        handleRemoveEnemyAction={handleRemoveEnemyAction}
-						        handleAddEnemyAction={handleAddEnemyAction}
-						        enemies={enemies}
-						        removeEnemy={removeEnemy}
+						<Enemies
+							enemyForm={enemyForm}
+							setEnemyForm={setEnemyForm}
+							handleEnemySubmit={handleEnemySubmit}
+							monsterSearch={monsterSearch}
+							setMonsterSearch={setMonsterSearch}
+							shouldShowMonsterDropdown={shouldShowMonsterDropdown}
+							isSearchingMonsters={isSearchingMonsters}
+							monsterSearchError={monsterSearchError}
+							monsterResults={monsterResults}
+							monsterSearchTerm={monsterSearchTerm}
+							handleMonsterSelect={handleMonsterSelect}
+							handleEnemyAbilityScoreChange={handleEnemyAbilityScoreChange}
+							handleEnemyActionChange={handleEnemyActionChange}
+							handleRemoveEnemyAction={handleRemoveEnemyAction}
+							handleAddEnemyAction={handleAddEnemyAction}
+							enemies={enemies}
+							removeEnemy={removeEnemy}
 						/>
-
 					</div>
 				</main>
 			</div>
