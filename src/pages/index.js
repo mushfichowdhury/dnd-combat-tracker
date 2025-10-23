@@ -763,20 +763,38 @@ export default function Home() {
 					.filter((action) => action.name || action.description)
 			: [];
 
-		setEnemies((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: enemyForm.name.trim(),
-				armorClass: enemyForm.armorClass.trim(),
-				hitPoints: enemyForm.hitPoints.trim(),
-				initiative: Number(enemyForm.initiative) || 0,
-				speed: speedValue,
-				abilityScores: sanitizedAbilityScores,
-				actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
-				notes: enemyForm.notes.trim(),
-			},
-		]);
+                const trimmedHitPoints = enemyForm.hitPoints.trim();
+                const numericHitPoints = Number(trimmedHitPoints);
+                const parsedHitPoints =
+                        trimmedHitPoints === ""
+                                ? ""
+                                : Number.isFinite(numericHitPoints)
+                                ? numericHitPoints
+                                : trimmedHitPoints;
+                const parsedMaxHitPoints =
+                        trimmedHitPoints === ""
+                                ? undefined
+                                : Number.isFinite(numericHitPoints)
+                                ? numericHitPoints
+                                : trimmedHitPoints;
+
+                setEnemies((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: enemyForm.name.trim(),
+                                armorClass: enemyForm.armorClass.trim(),
+                                hitPoints: parsedHitPoints,
+                                ...(parsedMaxHitPoints !== undefined
+                                        ? { maxHitPoints: parsedMaxHitPoints }
+                                        : {}),
+                                initiative: Number(enemyForm.initiative) || 0,
+                                speed: speedValue,
+                                abilityScores: sanitizedAbilityScores,
+                                actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
+                                notes: enemyForm.notes.trim(),
+                        },
+                ]);
 		setEnemyForm(createEmptyEnemyForm());
 	};
 
@@ -807,16 +825,83 @@ export default function Home() {
 	};
 
         const handleEnemyHitPointsChange = (id, value) => {
+                const sanitizeHitPointEntry = (raw) => {
+                        if (raw === undefined || raw === null) {
+                                return undefined;
+                        }
+
+                        const stringValue = typeof raw === "string" ? raw : String(raw);
+                        const trimmedValue = stringValue.trim();
+
+                        if (trimmedValue === "") {
+                                return undefined;
+                        }
+
+                        const numericValue = Number(trimmedValue);
+
+                        if (Number.isFinite(numericValue)) {
+                                return numericValue;
+                        }
+
+                        return trimmedValue;
+                };
+
                 setEnemies((prev) =>
                         prev.map((enemy) => {
                                 if (enemy.id !== id) {
                                         return enemy;
                                 }
 
-                                return {
+                                const rawValue = typeof value === "string" ? value : String(value ?? "");
+                                const trimmedValue = rawValue.trim();
+
+                                if (trimmedValue === "") {
+                                        return {
+                                                ...enemy,
+                                                hitPoints: "",
+                                        };
+                                }
+
+                                const slashIndex = trimmedValue.indexOf("/");
+
+                                if (slashIndex !== -1) {
+                                        const currentPart = trimmedValue.slice(0, slashIndex).trim();
+                                        const maxPart = trimmedValue.slice(slashIndex + 1).trim();
+                                        const sanitizedCurrent = sanitizeHitPointEntry(currentPart);
+                                        const sanitizedMax = sanitizeHitPointEntry(maxPart);
+
+                                        const nextEnemy = {
+                                                ...enemy,
+                                                hitPoints:
+                                                        sanitizedCurrent !== undefined
+                                                                ? sanitizedCurrent
+                                                                : "",
+                                        };
+
+                                        if (sanitizedMax !== undefined) {
+                                                nextEnemy.maxHitPoints = sanitizedMax;
+                                        } else if (enemy.maxHitPoints !== undefined) {
+                                                nextEnemy.maxHitPoints = enemy.maxHitPoints;
+                                        }
+
+                                        return nextEnemy;
+                                }
+
+                                const sanitizedCurrent = sanitizeHitPointEntry(trimmedValue);
+
+                                const nextEnemy = {
                                         ...enemy,
-                                        hitPoints: value,
+                                        hitPoints: sanitizedCurrent !== undefined ? sanitizedCurrent : "",
                                 };
+
+                                if (
+                                        sanitizedCurrent !== undefined &&
+                                        enemy.maxHitPoints === undefined
+                                ) {
+                                        nextEnemy.maxHitPoints = sanitizedCurrent;
+                                }
+
+                                return nextEnemy;
                         })
                 );
         };

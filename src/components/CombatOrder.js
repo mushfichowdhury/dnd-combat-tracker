@@ -152,6 +152,69 @@ const CombatOrder = ({
                                                                                                 }
                                                                                         }
 
+                                                                                        const enemyHitPointsData =
+                                                                                                showEnemyHitPoints ? combatant.hitPoints : undefined;
+                                                                                        let enemyCurrentValue = "";
+                                                                                        if (showEnemyHitPoints) {
+                                                                                                if (
+                                                                                                        enemyHitPointsData &&
+                                                                                                        typeof enemyHitPointsData === "object"
+                                                                                                ) {
+                                                                                                        const potentialCurrent =
+                                                                                                                enemyHitPointsData.current ??
+                                                                                                                enemyHitPointsData.value ??
+                                                                                                                enemyHitPointsData.hp ??
+                                                                                                                enemyHitPointsData;
+                                                                                                        if (
+                                                                                                                potentialCurrent !== undefined &&
+                                                                                                                potentialCurrent !== null &&
+                                                                                                                potentialCurrent !== ""
+                                                                                                        ) {
+                                                                                                                enemyCurrentValue = String(potentialCurrent);
+                                                                                                        }
+                                                                                                } else if (
+                                                                                                        enemyHitPointsData !== undefined &&
+                                                                                                        enemyHitPointsData !== null &&
+                                                                                                        enemyHitPointsData !== ""
+                                                                                                ) {
+                                                                                                        enemyCurrentValue = String(enemyHitPointsData);
+                                                                                                }
+                                                                                        }
+
+                                                                                        let enemyMaxDisplay = "";
+                                                                                        if (showEnemyHitPoints) {
+                                                                                                if (
+                                                                                                        enemyHitPointsData &&
+                                                                                                        typeof enemyHitPointsData === "object"
+                                                                                                ) {
+                                                                                                        const potentialMax =
+                                                                                                                enemyHitPointsData.max ??
+                                                                                                                enemyHitPointsData.total ??
+                                                                                                                enemyHitPointsData.maximum ??
+                                                                                                                enemyHitPointsData.maxHitPoints ??
+                                                                                                                enemyHitPointsData.hitPointsMax;
+                                                                                                        if (
+                                                                                                                potentialMax !== undefined &&
+                                                                                                                potentialMax !== null &&
+                                                                                                                potentialMax !== ""
+                                                                                                        ) {
+                                                                                                                enemyMaxDisplay = String(potentialMax);
+                                                                                                        }
+                                                                                                }
+
+                                                                                                if (!enemyMaxDisplay) {
+                                                                                                        const rawMax = combatant.maxHitPoints;
+
+                                                                                                        if (
+                                                                                                                rawMax !== undefined &&
+                                                                                                                rawMax !== null &&
+                                                                                                                rawMax !== ""
+                                                                                                        ) {
+                                                                                                                enemyMaxDisplay = String(rawMax);
+                                                                                                        }
+                                                                                                }
+                                                                                        }
+
                                                                                         const importedPartyCurrentDisplay =
                                                                                                 showImportedPartyHitPoints &&
                                                                                                 partyCurrentValue !== undefined &&
@@ -231,12 +294,12 @@ const CombatOrder = ({
                                                                                                                                         </>
                                                                                                                                 ) : showManualPartyControls ? (
                                                                                                                                         <>
-                                                                                                                                                <label className={styles.currentHp}>
-                                                                                                                                                        <span className={styles.currentHpLabel}>
-                                                                                                                                                                HP
-                                                                                                                                                        </span>
-                                                                                                                                                        <input
-                                                                                                                                                                type='number'
+                <label className={styles.currentHp}>
+                        <span className={styles.currentHpLabel}>
+                                HP
+                        </span>
+                        <input
+                                type='number'
                                                                                                                                                                 className={`${styles.enemyHpInput} ${
                                                                                                                                                                         isLowHitPoints ? styles.lowHp : ""
                                                                                                                                                                 }`}
@@ -283,27 +346,28 @@ const CombatOrder = ({
                                                                                                                                         </>
                                                                                                                                 ) : (
                                                                                                                                         <>
-                                                                                                                                                <label className={styles.currentHp}>
-                                                                                                                                                        <span className={styles.currentHpLabel}>
-                                                                                                                                                                HP
-                                                                                                                                                        </span>
-                                                                                                                                                        <input
-                                                                                                                                                                type='text'
-                                                                                                                                                                className={styles.enemyHpInput}
-                                                                                                                                                                value={
-                                                                                                                                                                        typeof combatant.hitPoints === "number"
-                                                                                                                                                                                ? String(combatant.hitPoints)
-                                                                                                                                                                                : combatant.hitPoints ?? ""
-                                                                                                                                                                }
-                                                                                                                                                                onChange={(event) =>
-                                                                                                                                                                        handleEnemyHitPointsChange(
-                                                                                                                                                                                combatant.id,
-                                                                                                                                                                                event.target.value
-                                                                                                                                                                        )
-                                                                                                                                                                }
-                                                                                                                                                                placeholder='--'
-                                                                                                                                                        />
-                                                                                                                                                </label>
+                <label className={styles.currentHp}>
+                        <span className={styles.currentHpLabel}>
+                                HP
+                        </span>
+                        <input
+                                type='text'
+                                className={styles.enemyHpInput}
+                                value={enemyCurrentValue}
+                                onChange={(event) =>
+                                        handleEnemyHitPointsChange(
+                                                combatant.id,
+                                                event.target.value
+                                        )
+                                }
+                                placeholder='--'
+                        />
+                        {enemyMaxDisplay ? (
+                                <span className={styles.currentHpMax}>
+                                        / {enemyMaxDisplay}
+                                </span>
+                        ) : null}
+                </label>
                                                                                                                                                 <form
                                                                                                                                                         className={styles.enemyDamageForm}
                                                                                                                                                         onSubmit={(event) => {
