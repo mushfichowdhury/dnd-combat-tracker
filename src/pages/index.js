@@ -76,9 +76,41 @@ export default function Home() {
 	const [activeCombatantId, setActiveCombatantId] = useState(null);
 	const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
 	const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
-	const [dndBeyondError, setDndBeyondError] = useState("");
-	const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
-	const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
+        const [dndBeyondError, setDndBeyondError] = useState("");
+        const [dndBeyondNotice, setDndBeyondNotice] = useState("");
+        const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
+        const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
+
+        const createPartyMemberFromDndBeyond = (data) => {
+                if (!data || !data.name) {
+                        return null;
+                }
+
+                const initiativeNumber = Number(data.initiative);
+                const levelNumber = Number(data.level);
+                const classSummary = formatClassSummary(data.classes);
+
+                return {
+                        id: generateId(),
+                        name: data.name,
+                        initiative: null,
+                        source: "dndbeyond",
+                        classSummary: classSummary || undefined,
+                        level:
+                                Number.isFinite(levelNumber) && levelNumber > 0
+                                        ? levelNumber
+                                        : undefined,
+                        playerName: data.playerName || undefined,
+                        ddbCharacterId: data.id || undefined,
+                        abilityScores: Array.isArray(data.abilityScores)
+                                ? data.abilityScores
+                                : undefined,
+                        hitPoints: data.hitPoints || undefined,
+                        calculatedInitiative: Number.isFinite(initiativeNumber)
+                                ? initiativeNumber
+                                : undefined,
+                };
+        };
 
 	const handlePartySubmit = (event) => {
 		event.preventDefault();
@@ -102,9 +134,10 @@ export default function Home() {
 			return;
 		}
 
-		setDndBeyondError("");
-		setDndBeyondRefreshError("");
-		setIsImportingDndBeyond(true);
+                setDndBeyondError("");
+                setDndBeyondNotice("");
+                setDndBeyondRefreshError("");
+                setIsImportingDndBeyond(true);
 
 		try {
 			const response = await fetch("/api/import-dndbeyond", {
@@ -142,35 +175,15 @@ export default function Home() {
 				return;
 			}
 
-			const initiativeNumber = Number(data.initiative);
-			const levelNumber = Number(data.level);
-			const classSummary = formatClassSummary(data.classes);
+                        const newMember = createPartyMemberFromDndBeyond(data);
+                        if (!newMember) {
+                                throw new Error("The character response was missing required data.");
+                        }
 
-			setPartyMembers((prev) => [
-				...prev,
-				{
-					id: generateId(),
-					name: data.name,
-					initiative: null,
-					source: "dndbeyond",
-					classSummary: classSummary || undefined,
-					level:
-						Number.isFinite(levelNumber) && levelNumber > 0
-							? levelNumber
-							: undefined,
-					playerName: data.playerName || undefined,
-					ddbCharacterId: data.id || undefined,
-					abilityScores: Array.isArray(data.abilityScores)
-						? data.abilityScores
-						: undefined,
-					hitPoints: data.hitPoints || undefined,
-					calculatedInitiative: Number.isFinite(initiativeNumber)
-						? initiativeNumber
-						: undefined,
-				},
-			]);
+                        setPartyMembers((prev) => [...prev, newMember]);
 
-			setDndBeyondIdentifier("");
+                        setDndBeyondIdentifier("");
+                        setDndBeyondNotice(`Imported ${data.name} from D&D Beyond.`);
 		} catch (error) {
 			console.error(error);
 			setDndBeyondError(
@@ -183,7 +196,133 @@ export default function Home() {
 		}
 	};
 
-	const handleAttackSubmit = (event) => {
+        const handleDndBeyondCampaignImport = async (event) => {
+                event.preventDefault();
+                const identifier = dndBeyondIdentifier.trim();
+                if (!identifier) {
+                        return;
+                }
+
+                setDndBeyondError("");
+                setDndBeyondNotice("");
+                setDndBeyondRefreshError("");
+                setIsImportingDndBeyond(true);
+
+                try {
+                        const response = await fetch("/api/import-dndbeyond-campaign", {
+                                method: "POST",
+                                headers: {
+                                        "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({ identifier }),
+                        });
+
+                        let data = null;
+                        try {
+                                data = await response.json();
+                        } catch (parseError) {
+                                data = null;
+                        }
+
+                        if (!response.ok) {
+                                const message =
+                                        data && data.error
+                                                ? data.error
+                                                : "Failed to import campaign from D&D Beyond.";
+                                throw new Error(message);
+                        }
+
+                        if (!data || !Array.isArray(data.characters)) {
+                                throw new Error(
+                                        "The campaign response was missing character data."
+                                );
+                        }
+
+                        const existingIds = new Set(
+                                partyMembers
+                                        .filter((member) => member.ddbCharacterId)
+                                        .map((member) => member.ddbCharacterId)
+                        );
+
+                        const newMembers = [];
+                        const skipped = [];
+
+                        for (const character of data.characters) {
+                                if (character?.id && existingIds.has(character.id)) {
+                                        skipped.push(character.name || character.id);
+                                        continue;
+                                }
+
+                                const newMember = createPartyMemberFromDndBeyond(character);
+                                if (newMember) {
+                                        newMembers.push(newMember);
+                                        if (character?.id) {
+                                                existingIds.add(character.id);
+                                        }
+                                }
+                        }
+
+                        if (newMembers.length > 0) {
+                                setPartyMembers((prev) => [...prev, ...newMembers]);
+                                setDndBeyondIdentifier("");
+                        }
+
+                        if (newMembers.length === 0) {
+                                if (skipped.length > 0) {
+                                        setDndBeyondError(
+                                                `All characters in that campaign are already in your party: ${skipped.join(", ")}.`
+                                        );
+                                } else {
+                                        setDndBeyondError(
+                                                "No characters were available to import from that campaign."
+                                        );
+                                }
+                                setDndBeyondNotice("");
+                                return;
+                        }
+
+                        const noticeParts = [];
+                        const campaignName =
+                                typeof data.campaignName === "string" && data.campaignName.trim()
+                                        ? data.campaignName.trim()
+                                        : "";
+
+                        noticeParts.push(
+                                campaignName
+                                        ? `Imported ${newMembers.length} ${
+                                                  newMembers.length === 1
+                                                          ? "character"
+                                                          : "characters"
+                                          } from ${campaignName}.`
+                                        : `Imported ${newMembers.length} ${
+                                                  newMembers.length === 1
+                                                          ? "character"
+                                                          : "characters"
+                                          } from D&D Beyond.`
+                        );
+
+                        if (skipped.length > 0) {
+                                noticeParts.push(
+                                        `Skipped already in party: ${skipped.join(", ")}.`
+                                );
+                        }
+
+                        setDndBeyondNotice(noticeParts.join(" "));
+                        setDndBeyondError("");
+                } catch (error) {
+                        console.error(error);
+                        setDndBeyondError(
+                                error instanceof Error && error.message
+                                        ? error.message
+                                        : "Failed to import campaign from D&D Beyond."
+                        );
+                        setDndBeyondNotice("");
+                } finally {
+                        setIsImportingDndBeyond(false);
+                }
+        };
+
+        const handleAttackSubmit = (event) => {
 		event.preventDefault();
 		if (!attackForm.name.trim()) return;
 
@@ -594,32 +733,50 @@ export default function Home() {
 									and current hit points. Enter initiative manually after
 									importing.
 								</p>
-								<form
-									onSubmit={handleDndBeyondImport}
-									className={styles.importForm}>
-									<label className={styles.inputGroup}>
-										<span>Character URL or ID</span>
-										<input
-											type='text'
-											value={dndBeyondIdentifier}
-											onChange={(event) =>
-												setDndBeyondIdentifier(event.target.value)
-											}
-											placeholder='https://www.dndbeyond.com/characters/12345678'
-										/>
-									</label>
-									{dndBeyondError && (
-										<p className={styles.errorMessage}>{dndBeyondError}</p>
-									)}
-									<button
-										type='submit'
-										className={styles.secondaryButton}
-										disabled={
-											isImportingDndBeyond || !dndBeyondIdentifier.trim()
-										}>
-										{isImportingDndBeyond ? "Importing..." : "Import Character"}
-									</button>
-								</form>
+                                                                <form
+                                                                        onSubmit={handleDndBeyondImport}
+                                                                        className={styles.importForm}>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Character URL or ID</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={dndBeyondIdentifier}
+                                                                                        onChange={(event) =>
+                                                                                                setDndBeyondIdentifier(event.target.value)
+                                                                                        }
+                                                                                        placeholder='https://www.dndbeyond.com/characters/12345678'
+                                                                                />
+                                                                        </label>
+                                                                        {dndBeyondNotice && (
+                                                                                <p className={styles.infoMessage}>{dndBeyondNotice}</p>
+                                                                        )}
+                                                                        {dndBeyondError && (
+                                                                                <p className={styles.errorMessage}>{dndBeyondError}</p>
+                                                                        )}
+                                                                        <div className={styles.importActions}>
+                                                                                <button
+                                                                                        type='submit'
+                                                                                        className={styles.secondaryButton}
+                                                                                        disabled={
+                                                                                                isImportingDndBeyond || !dndBeyondIdentifier.trim()
+                                                                                        }>
+                                                                                        {isImportingDndBeyond
+                                                                                                ? "Importing..."
+                                                                                                : "Import Character"}
+                                                                                </button>
+                                                                                <button
+                                                                                        type='button'
+                                                                                        className={styles.secondaryButton}
+                                                                                        onClick={handleDndBeyondCampaignImport}
+                                                                                        disabled={
+                                                                                                isImportingDndBeyond || !dndBeyondIdentifier.trim()
+                                                                                        }>
+                                                                                        {isImportingDndBeyond
+                                                                                                ? "Importing..."
+                                                                                                : "Import Campaign"}
+                                                                                </button>
+                                                                        </div>
+                                                                </form>
 							</div>
 							{partyMembers.length > 0 && (
 								<ul className={styles.cardList}>

@@ -104,9 +104,21 @@
   align-items: flex-start;
 }
 
+.importActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
 .errorMessage {
   margin: 0;
   color: #f7b9b9;
+  font-size: 0.9rem;
+}
+
+.infoMessage {
+  margin: 0;
+  color: rgba(224, 203, 164, 0.95);
   font-size: 0.9rem;
 }
 
