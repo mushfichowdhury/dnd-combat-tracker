@@ -55,25 +55,40 @@ const flattenModifiers = (modifiers) => {
 	}, []);
 };
 
+const parseFiniteNumber = (value) => {
+        if (value === null || value === undefined) {
+                return null;
+        }
+
+        if (typeof value === "string" && value.trim() === "") {
+                return null;
+        }
+
+        const numericValue = Number(value);
+        return Number.isFinite(numericValue) ? numericValue : null;
+};
+
 const getAbilityScore = (character, statId) => {
-	if (!character || !statId) {
-		return null;
-	}
+        if (!character || !statId) {
+                return null;
+        }
 
-	const override = Array.isArray(character.overrideStats)
-		? character.overrideStats.find((stat) => stat?.id === statId)
-		: null;
-	if (override && Number.isFinite(Number(override.value))) {
-		return Number(override.value);
-	}
+        const override = Array.isArray(character.overrideStats)
+                ? character.overrideStats.find((stat) => stat?.id === statId)
+                : null;
+        const overrideValue = parseFiniteNumber(override?.value);
+        if (Number.isFinite(overrideValue)) {
+                return overrideValue;
+        }
 
-	const base = Array.isArray(character.stats)
-		? character.stats.find((stat) => stat?.id === statId)
-		: null;
+        const base = Array.isArray(character.stats)
+                ? character.stats.find((stat) => stat?.id === statId)
+                : null;
 
-	if (base && Number.isFinite(Number(base.value))) {
-		return Number(base.value);
-	}
+        const baseValue = parseFiniteNumber(base?.value);
+        if (Number.isFinite(baseValue)) {
+                return baseValue;
+        }
 
 	switch (statId) {
 		case 1:
@@ -163,14 +178,7 @@ const mapAbilityScores = (character) => {
 		.filter(Boolean);
 };
 
-const sanitizeNumber = (value) => {
-	const numericValue = Number(value);
-	if (!Number.isFinite(numericValue)) {
-		return null;
-	}
-
-	return numericValue;
-};
+const sanitizeNumber = (value) => parseFiniteNumber(value);
 
 const calculateHitPoints = (character) => {
 	if (!character) {
