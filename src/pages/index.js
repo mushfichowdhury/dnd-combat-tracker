@@ -11,6 +11,8 @@ const generateId = () => {
 
 const emptyPartyForm = { name: "", initiative: "" };
 
+const ENEMY_NOTE_PREVIEW_LENGTH = 140;
+
 const ABILITY_SCORE_CONFIG = [
         { key: "strength", label: "STR" },
         { key: "dexterity", label: "DEX" },
@@ -323,6 +325,7 @@ const formatAbilityScoreDisplay = (value) => {
 export default function Home() {
         const [partyMembers, setPartyMembers] = useState([]);
         const [enemies, setEnemies] = useState([]);
+        const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
         const [partyForm, setPartyForm] = useState(emptyPartyForm);
         const [enemyForm, setEnemyForm] = useState(() => createEmptyEnemyForm());
         const [monsterSearch, setMonsterSearch] = useState("");
@@ -788,15 +791,46 @@ export default function Home() {
 		setPartyMembers((prev) => prev.filter((member) => member.id !== id));
 	};
 
-	const removeEnemy = (id) => {
-		setEnemies((prev) => prev.filter((enemy) => enemy.id !== id));
-	};
+        const removeEnemy = (id) => {
+                setEnemies((prev) => prev.filter((enemy) => enemy.id !== id));
+                setExpandedEnemyNotes((prev) => {
+                        if (!prev[id]) {
+                                return prev;
+                        }
 
-	const handleImportedInitiativeChange = (id, value) => {
-		setPartyMembers((prev) =>
-			prev.map((member) => {
-				if (member.id !== id) {
-					return member;
+                        const next = { ...prev };
+                        delete next[id];
+                        return next;
+                });
+        };
+
+        const handleEnemyHitPointsChange = (id, value) => {
+                setEnemies((prev) =>
+                        prev.map((enemy) => {
+                                if (enemy.id !== id) {
+                                        return enemy;
+                                }
+
+                                return {
+                                        ...enemy,
+                                        hitPoints: value,
+                                };
+                        })
+                );
+        };
+
+        const toggleEnemyNotesExpansion = (id) => {
+                setExpandedEnemyNotes((prev) => ({
+                        ...prev,
+                        [id]: !prev[id],
+                }));
+        };
+
+        const handleImportedInitiativeChange = (id, value) => {
+                setPartyMembers((prev) =>
+                        prev.map((member) => {
+                                if (member.id !== id) {
+                                        return member;
 				}
 
 				if (value === "") {
@@ -1029,18 +1063,37 @@ export default function Home() {
 							</p>
 						) : (
 							<ol className={styles.combatList}>
-								{combatOrder.map((combatant, index) => {
-									const showHitPoints =
-										combatant.type === "party" && combatant.hitPoints;
-									const currentHitPoints = showHitPoints
-										? Number(combatant.hitPoints.current)
-										: null;
-									const isLowHitPoints =
-										Number.isFinite(currentHitPoints) && currentHitPoints <= 5;
+                                                                {combatOrder.map((combatant, index) => {
+                                                                        const showPartyHitPoints =
+                                                                                combatant.type === "party" && combatant.hitPoints;
+                                                                        const showEnemyHitPoints = combatant.type === "enemy";
+                                                                        const currentHitPoints = showPartyHitPoints
+                                                                                ? Number(combatant.hitPoints.current)
+                                                                                : null;
+                                                                        const isLowHitPoints =
+                                                                                Number.isFinite(currentHitPoints) && currentHitPoints <= 5;
+                                                                        const enemyNote =
+                                                                                combatant.type === "enemy" &&
+                                                                                typeof combatant.notes === "string"
+                                                                                        ? combatant.notes.trim()
+                                                                                        : "";
+                                                                        const hasEnemyNote = enemyNote.length > 0;
+                                                                        const isEnemyNoteExpanded = Boolean(
+                                                                                expandedEnemyNotes[combatant.id]
+                                                                        );
+                                                                        const shouldTruncateEnemyNote =
+                                                                                hasEnemyNote &&
+                                                                                enemyNote.length > ENEMY_NOTE_PREVIEW_LENGTH;
+                                                                        const displayedEnemyNote =
+                                                                                isEnemyNoteExpanded || !shouldTruncateEnemyNote
+                                                                                        ? enemyNote
+                                                                                        : `${enemyNote
+                                                                                                  .slice(0, ENEMY_NOTE_PREVIEW_LENGTH)
+                                                                                                  .trimEnd()}…`;
 
-									return (
-										<li
-											key={combatant.id}
+                                                                        return (
+                                                                                <li
+                                                                                        key={combatant.id}
 											className={`${styles.combatant} ${
 												index === highlightedIndex ? styles.activeCombatant : ""
 											}`}>
@@ -1059,46 +1112,83 @@ export default function Home() {
 														</strong>
 													</p>
 												</div>
-												{showHitPoints && (
-													<div className={styles.combatantVitals}>
-														<div className={styles.currentHp}>
-															<span className={styles.currentHpLabel}>HP</span>
-															<span
-																className={`${styles.currentHpValue} ${
-																	isLowHitPoints ? styles.lowHp : ""
-																}`}>
-																{combatant.hitPoints.current}
-															</span>
-															{typeof combatant.hitPoints.max === "number" &&
-															Number.isFinite(combatant.hitPoints.max) &&
-															combatant.hitPoints.max > 0 ? (
-																<span className={styles.currentHpMax}>
-																	/ {combatant.hitPoints.max}
-																</span>
-															) : null}
-														</div>
-														{combatant.hitPoints.temporary ? (
-															<span className={styles.tempHpNote}>
-																{`(+${combatant.hitPoints.temporary} temp)`}
-															</span>
-														) : null}
-													</div>
-												)}
-											</div>
-											{combatant.type === "enemy" && (
-												<div className={styles.combatantDetails}>
-													{combatant.armorClass && (
-														<span>AC {combatant.armorClass}</span>
-													)}
-													{combatant.hitPoints && (
-														<span>HP {combatant.hitPoints}</span>
-													)}
-													{combatant.notes && <span>{combatant.notes}</span>}
-												</div>
-											)}
-										</li>
-									);
-								})}
+                                                                                                {(showPartyHitPoints || showEnemyHitPoints) && (
+                                                                                                        <div className={styles.combatantVitals}>
+                                                                                                                {showPartyHitPoints ? (
+                                                                                                                        <>
+                                                                                                                                <div className={styles.currentHp}>
+                                                                                                                                        <span className={styles.currentHpLabel}>HP</span>
+                                                                                                                                        <span
+                                                                                                                                                className={`${styles.currentHpValue} ${
+                                                                                                                                                        isLowHitPoints ? styles.lowHp : ""
+                                                                                                                                                }`}>
+                                                                                                                                                {combatant.hitPoints.current}
+                                                                                                                                        </span>
+                                                                                                                                        {typeof combatant.hitPoints.max === "number" &&
+                                                                                                                                        Number.isFinite(combatant.hitPoints.max) &&
+                                                                                                                                        combatant.hitPoints.max > 0 ? (
+                                                                                                                                                <span className={styles.currentHpMax}>
+                                                                                                                                                        / {combatant.hitPoints.max}
+                                                                                                                                                </span>
+                                                                                                                                        ) : null}
+                                                                                                                                </div>
+                                                                                                                                {combatant.hitPoints.temporary ? (
+                                                                                                                                        <span className={styles.tempHpNote}>
+                                                                                                                                                {`(+${combatant.hitPoints.temporary} temp)`}
+                                                                                                                                        </span>
+                                                                                                                                ) : null}
+                                                                                                                        </>
+                                                                                                                ) : (
+                                                                                                                        <label className={styles.currentHp}>
+                                                                                                                                <span className={styles.currentHpLabel}>HP</span>
+                                                                                                                                <input
+                                                                                                                                        type='text'
+                                                                                                                                        className={styles.enemyHpInput}
+                                                                                                                                        value={
+                                                                                                                                                typeof combatant.hitPoints === "number"
+                                                                                                                                                        ? String(combatant.hitPoints)
+                                                                                                                                                        : combatant.hitPoints ?? ""
+                                                                                                                                        }
+                                                                                                                                        onChange={(event) =>
+                                                                                                                                                handleEnemyHitPointsChange(
+                                                                                                                                                        combatant.id,
+                                                                                                                                                        event.target.value
+                                                                                                                                                )
+                                                                                                                                        }
+                                                                                                                                        placeholder='--'
+                                                                                                                                />
+                                                                                                                        </label>
+                                                                                                                )}
+                                                                                                        </div>
+                                                                                                )}
+                                                                                        </div>
+                                                                                        {combatant.type === "enemy" && (
+                                                                                                <div className={styles.combatantDetails}>
+                                                                                                        {combatant.armorClass && (
+                                                                                                                <span>AC {combatant.armorClass}</span>
+                                                                                                        )}
+                                                                                                        {hasEnemyNote && (
+                                                                                                                <div className={styles.enemyNotes}>
+                                                                                                                        <span className={styles.enemyNotesText}>
+                                                                                                                                {displayedEnemyNote}
+                                                                                                                        </span>
+                                                                                                                        {shouldTruncateEnemyNote && (
+                                                                                                                                <button
+                                                                                                                                        type='button'
+                                                                                                                                        className={styles.expandNotesButton}
+                                                                                                                                        onClick={() =>
+                                                                                                                                                toggleEnemyNotesExpansion(combatant.id)
+                                                                                                                                        }>
+                                                                                                                                        {isEnemyNoteExpanded ? "Show less" : "Read more"}
+                                                                                                                                </button>
+                                                                                                                        )}
+                                                                                                                </div>
+                                                                                                        )}
+                                                                                                </div>
+                                                                                        )}
+                                                                                </li>
+                                                                        );
+                                                                })}
 							</ol>
 						)}
 					</section>
