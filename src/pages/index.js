@@ -367,7 +367,8 @@ const formatAbilityScoreDisplay = (value) => {
 export default function Home() {
 	const [partyMembers, setPartyMembers] = useState([]);
 	const [enemies, setEnemies] = useState([]);
-	const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
+        const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
+        const [enemyDamageInputs, setEnemyDamageInputs] = useState({});
 	const [partyForm, setPartyForm] = useState(emptyPartyForm);
 	const [enemyForm, setEnemyForm] = useState(() => createEmptyEnemyForm());
 	const [monsterSearch, setMonsterSearch] = useState("");
@@ -838,20 +839,82 @@ export default function Home() {
 		});
 	};
 
-	const handleEnemyHitPointsChange = (id, value) => {
-		setEnemies((prev) =>
-			prev.map((enemy) => {
-				if (enemy.id !== id) {
-					return enemy;
+        const handleEnemyHitPointsChange = (id, value) => {
+                setEnemies((prev) =>
+                        prev.map((enemy) => {
+                                if (enemy.id !== id) {
+                                        return enemy;
 				}
 
-				return {
-					...enemy,
-					hitPoints: value,
-				};
-			})
-		);
-	};
+                                return {
+                                        ...enemy,
+                                        hitPoints: value,
+                                };
+                        })
+                );
+        };
+
+        const handleEnemyDamageInputChange = (id, value) => {
+                setEnemyDamageInputs((prev) => ({
+                        ...prev,
+                        [id]: value,
+                }));
+        };
+
+        const applyEnemyDamage = (id) => {
+                const rawDamage = enemyDamageInputs[id];
+                const damageValue = Number(rawDamage);
+
+                if (!Number.isFinite(damageValue)) {
+                        return;
+                }
+
+                const sanitizedDamage = Math.max(0, damageValue);
+
+                let didUpdate = false;
+
+                setEnemies((prev) =>
+                        prev.map((enemy) => {
+                                if (enemy.id !== id) {
+                                        return enemy;
+                                }
+
+                                const rawHitPoints = enemy.hitPoints;
+                                const currentHitPoints =
+                                        typeof rawHitPoints === "number"
+                                                ? rawHitPoints
+                                                : Number(rawHitPoints);
+
+                                if (!Number.isFinite(currentHitPoints)) {
+                                        return enemy;
+                                }
+
+                                didUpdate = true;
+
+                                const nextHitPoints = Math.max(0, currentHitPoints - sanitizedDamage);
+
+                                return {
+                                        ...enemy,
+                                        hitPoints:
+                                                typeof rawHitPoints === "number"
+                                                        ? nextHitPoints
+                                                        : String(nextHitPoints),
+                                };
+                        })
+                );
+
+                if (didUpdate) {
+                        setEnemyDamageInputs((prev) => {
+                                if (!(id in prev)) {
+                                        return prev;
+                                }
+
+                                const next = { ...prev };
+                                delete next[id];
+                                return next;
+                        });
+                }
+        };
 
 	const toggleEnemyNotesExpansion = (id) => {
 		setExpandedEnemyNotes((prev) => ({
@@ -1178,30 +1241,57 @@ export default function Home() {
 																) : null}
 															</>
 														) : (
-															<label className={styles.currentHp}>
-																<span className={styles.currentHpLabel}>
-																	HP
-																</span>
-																<input
-																	type='text'
-																	className={styles.enemyHpInput}
-																	value={
-																		typeof combatant.hitPoints === "number"
-																			? String(combatant.hitPoints)
-																			: combatant.hitPoints ?? ""
-																	}
-																	onChange={(event) =>
-																		handleEnemyHitPointsChange(
-																			combatant.id,
-																			event.target.value
-																		)
-																	}
-																	placeholder='--'
-																/>
-															</label>
-														)}
-													</div>
-												)}
+                                                                                                                        <>
+                                                                                                                                <label className={styles.currentHp}>
+                                                                                                                                        <span className={styles.currentHpLabel}>
+                                                                                                                                                HP
+                                                                                                                                        </span>
+                                                                                                                                        <input
+                                                                                                                                                type='text'
+                                                                                                                                                className={styles.enemyHpInput}
+                                                                                                                                                value={
+                                                                                                                                                        typeof combatant.hitPoints === "number"
+                                                                                                                                                                ? String(combatant.hitPoints)
+                                                                                                                                                                : combatant.hitPoints ?? ""
+                                                                                                                                                }
+                                                                                                                                                onChange={(event) =>
+                                                                                                                                                        handleEnemyHitPointsChange(
+                                                                                                                                                                combatant.id,
+                                                                                                                                                                event.target.value
+                                                                                                                                                        )
+                                                                                                                                                }
+                                                                                                                                                placeholder='--'
+                                                                                                                                        />
+                                                                                                                                </label>
+                                                                                                                                <form
+                                                                                                                                        className={styles.enemyDamageForm}
+                                                                                                                                        onSubmit={(event) => {
+                                                                                                                                                event.preventDefault();
+                                                                                                                                                applyEnemyDamage(combatant.id);
+                                                                                                                                        }}
+                                                                                                                                >
+        <button type='submit' className={styles.enemyDamageButton}>
+                dmg
+        </button>
+        <input
+                type='number'
+                className={styles.enemyDamageInput}
+                value={enemyDamageInputs[combatant.id] ?? ""}
+                onChange={(event) =>
+                        handleEnemyDamageInputChange(
+                                combatant.id,
+                                event.target.value
+                        )
+                }
+                min='0'
+                inputMode='numeric'
+                aria-label='Damage amount'
+        />
+</form>
+                                                                                                                        </>
+                                                                                                               )}
+                                                                                                       </div>
+                                                                                               )}
 											</div>
 											{combatant.type === "enemy" && (
 												<div className={styles.combatantDetails}>
