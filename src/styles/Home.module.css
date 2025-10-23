@@ -728,6 +728,51 @@
         transform: translateY(-1px);
 }
 
+.enemyDamageForm {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+}
+
+.enemyDamageInput {
+        width: 70px;
+        border: 1px solid rgba(224, 185, 112, 0.35);
+        border-radius: 8px;
+        background: rgba(36, 25, 16, 0.7);
+        color: #f6efe3;
+        padding: 6px 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-align: right;
+        outline: none;
+        transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.enemyDamageInput:focus {
+        border-color: #d4a373;
+        transform: translateY(-1px);
+}
+
+.enemyDamageButton {
+        border: 1px solid rgba(224, 185, 112, 0.35);
+        border-radius: 8px;
+        background: rgba(212, 163, 115, 0.15);
+        color: #e0b970;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 6px 10px;
+        cursor: pointer;
+        transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.enemyDamageButton:hover,
+.enemyDamageButton:focus-visible {
+        border-color: #d4a373;
+        background: rgba(212, 163, 115, 0.25);
+        transform: translateY(-1px);
+        outline: none;
+}
+
 .currentHpMax {
 	font-size: 0.95rem;
 	color: rgba(246, 239, 227, 0.7);
@@ -902,5 +947,27 @@
 
         .expandNotesButton:hover {
                 color: #7c3f1e;
+        }
+
+        .enemyDamageInput {
+                background: rgba(255, 252, 245, 0.85);
+                color: #3a2a1a;
+                border-color: rgba(141, 109, 60, 0.35);
+        }
+
+        .enemyDamageInput:focus {
+                border-color: rgba(141, 109, 60, 0.55);
+        }
+
+        .enemyDamageButton {
+                border-color: rgba(141, 109, 60, 0.35);
+                background: rgba(212, 163, 115, 0.18);
+                color: #7c3f1e;
+        }
+
+        .enemyDamageButton:hover,
+        .enemyDamageButton:focus-visible {
+                border-color: rgba(141, 109, 60, 0.55);
+                background: rgba(212, 163, 115, 0.28);
         }
 }
