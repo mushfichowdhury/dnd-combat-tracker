@@ -313,23 +313,23 @@ export default function Home() {
 		}
 	};
 
-        const handleEnemySubmit = (event) => {
-                event.preventDefault();
-                if (!enemyForm.name.trim()) return;
+	const handleEnemySubmit = (event) => {
+		event.preventDefault();
+		if (!enemyForm.name.trim()) return;
 
-                setEnemies((prev) => [
-                        ...prev,
-                        {
-                                id: generateId(),
-                                name: enemyForm.name.trim(),
-                                armorClass: enemyForm.armorClass.trim(),
-                                hitPoints: enemyForm.hitPoints.trim(),
-                                initiative: Number(enemyForm.initiative) || 0,
-                                notes: enemyForm.notes.trim(),
-                        },
-                ]);
-                setEnemyForm(emptyEnemyForm);
-        };
+		setEnemies((prev) => [
+			...prev,
+			{
+				id: generateId(),
+				name: enemyForm.name.trim(),
+				armorClass: enemyForm.armorClass.trim(),
+				hitPoints: enemyForm.hitPoints.trim(),
+				initiative: Number(enemyForm.initiative) || 0,
+				notes: enemyForm.notes.trim(),
+			},
+		]);
+		setEnemyForm(emptyEnemyForm);
+	};
 
 	const removePartyMember = (id) => {
 		setPartyMembers((prev) => prev.filter((member) => member.id !== id));
@@ -636,9 +636,7 @@ export default function Home() {
 													{combatant.hitPoints && (
 														<span>HP {combatant.hitPoints}</span>
 													)}
-                                                                                                {combatant.notes && (
-                                                                                                        <span>{combatant.notes}</span>
-                                                                                                )}
+													{combatant.notes && <span>{combatant.notes}</span>}
 												</div>
 											)}
 										</li>
@@ -917,23 +915,22 @@ export default function Home() {
 										/>
 									</label>
 								</div>
-                                                                <fieldset className={styles.fieldset}>
-                                                                        <legend>Notes</legend>
-                                                                        <label className={styles.inputGroup}>
-                                                                                <span>Notes</span>
-                                                                                <textarea
-                                                                                        rows={6}
-                                                                                        value={enemyForm.notes}
-                                                                                        onChange={(event) =>
-                                                                                                setEnemyForm((prev) => ({
-                                                                                                        ...prev,
-                                                                                                        notes: event.target.value,
-                                                                                                }))
-                                                                                        }
-                                                                                        placeholder='Legendary resistances, vulnerabilities, or tactics.'
-                                                                                />
-                                                                        </label>
-                                                                </fieldset>
+								<fieldset className={styles.fieldset}>
+									<legend>Notes</legend>
+									<label className={styles.inputGroup}>
+										<textarea
+											rows={10}
+											value={enemyForm.notes}
+											onChange={(event) =>
+												setEnemyForm((prev) => ({
+													...prev,
+													notes: event.target.value,
+												}))
+											}
+											placeholder='Legendary resistances, vulnerabilities, or tactics.'
+										/>
+									</label>
+								</fieldset>
 
 								<button type='submit' className={styles.primaryButton}>
 									Add Enemy
