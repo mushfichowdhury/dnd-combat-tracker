@@ -248,10 +248,10 @@
 }
 
 .tempHpNote {
-  margin-left: 0;
   color: #f2c57c;
   font-weight: 600;
   font-size: 0.9rem;
+  align-self: flex-end;
 }
 
 .cardHeader {
@@ -363,13 +363,33 @@
 }
 
 .abilityCell {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
+  display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
   background: rgba(49, 36, 24, 0.8);
   padding: 8px 12px;
   border-radius: 10px;
+}
+
+.abilityNameGroup {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.abilityAbbreviation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(224, 185, 112, 0.18);
+  color: #f3d8aa;
+  font-weight: 700;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
 }
 
 .abilityName {
@@ -377,13 +397,23 @@
   color: #d4a373;
 }
 
+.abilityScoreGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  justify-content: flex-end;
+  min-width: 80px;
+}
+
 .abilityScore {
-  font-size: 0.95rem;
+  font-size: 1rem;
+  font-weight: 600;
 }
 
 .abilityModifier {
   font-weight: 600;
   font-size: 0.95rem;
+  color: #f6efe3;
 }
 
 .removeButton {
@@ -476,13 +506,16 @@
 .combatantInfo {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.combatantMeta {
+.combatantVitals {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: 6px;
 }
 
 .combatant h3 {

@@ -66,6 +66,14 @@ const formatInitiativeDisplay = (value) => {
   return "--";
 };
 
+const formatAbilityModifier = (value) => {
+  if (!Number.isFinite(value)) {
+    return "--";
+  }
+
+  return value >= 0 ? `+${value}` : value;
+};
+
 export default function Home() {
   const [partyMembers, setPartyMembers] = useState([]);
   const [enemies, setEnemies] = useState([]);
@@ -493,15 +501,15 @@ export default function Home() {
                               {combatant.type === "party" ? "Party" : "Enemy"}
                             </span>
                           </h3>
-                        </div>
-                        <div className={styles.combatantMeta}>
                           <p className={styles.statLine}>
                             Initiative: {" "}
                             <strong>
                               {formatInitiativeDisplay(combatant.initiative)}
                             </strong>
                           </p>
-                          {showHitPoints && (
+                        </div>
+                        {showHitPoints && (
+                          <div className={styles.combatantVitals}>
                             <div className={styles.currentHp}>
                               <span className={styles.currentHpLabel}>HP</span>
                               <span
@@ -518,14 +526,14 @@ export default function Home() {
                                   / {combatant.hitPoints.max}
                                 </span>
                               ) : null}
-                              {combatant.hitPoints.temporary ? (
-                                <span className={styles.tempHpNote}>
-                                  {` (+${combatant.hitPoints.temporary} temp)`}
-                                </span>
-                              ) : null}
                             </div>
-                          )}
-                        </div>
+                            {combatant.hitPoints.temporary ? (
+                              <span className={styles.tempHpNote}>
+                                {`(+${combatant.hitPoints.temporary} temp)`}
+                              </span>
+                            ) : null}
+                          </div>
+                        )}
                       </div>
                     {combatant.type === "enemy" && (
                       <div className={styles.combatantDetails}>
@@ -689,17 +697,24 @@ export default function Home() {
                                           key={ability.id}
                                           className={styles.abilityCell}
                                         >
-                                          <span className={styles.abilityName}>
-                                            {ability.name}
-                                          </span>
-                                          <span className={styles.abilityScore}>
-                                            {ability.score}
-                                          </span>
-                                          <span className={styles.abilityModifier}>
-                                            {ability.modifier >= 0
-                                              ? `+${ability.modifier}`
-                                              : ability.modifier}
-                                          </span>
+                                          <div className={styles.abilityNameGroup}>
+                                            {ability.name ? (
+                                              <span className={styles.abilityAbbreviation}>
+                                                {ability.name.slice(0, 3).toUpperCase()}
+                                              </span>
+                                            ) : null}
+                                            <span className={styles.abilityName}>
+                                              {ability.name || "Ability"}
+                                            </span>
+                                          </div>
+                                          <div className={styles.abilityScoreGroup}>
+                                            <span className={styles.abilityScore}>
+                                              {ability.score}
+                                            </span>
+                                            <span className={styles.abilityModifier}>
+                                              {formatAbilityModifier(ability.modifier)}
+                                            </span>
+                                          </div>
                                         </li>
                                       ))}
                                     </ul>
