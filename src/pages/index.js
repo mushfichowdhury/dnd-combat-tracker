@@ -126,7 +126,6 @@ export default function Home() {
 			let data = null;
 			try {
 				data = await response.json();
-				console.log("DATA...", data);
 			} catch (parseError) {
 				data = null;
 			}
