@@ -9,26 +9,52 @@ const generateId = () => {
 	return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-const emptyPartyForm = { name: "", initiative: "", hitPoints: "" };
+const emptyPartyForm = {
+        name: "",
+        initiative: "",
+        hitPointsCurrent: "",
+        hitPointsTotal: "",
+};
 
-const parseManualPartyHitPoints = (value) => {
-        if (typeof value !== "string") {
+const parseManualPartyHitPoints = (currentValue, totalValue) => {
+        const parseValue = (value) => {
+                if (typeof value !== "string") {
+                        return undefined;
+                }
+
+                const trimmed = value.trim();
+
+                if (trimmed === "") {
+                        return undefined;
+                }
+
+                const numericValue = Number(trimmed);
+
+                if (Number.isFinite(numericValue)) {
+                        return numericValue;
+                }
+
+                return trimmed;
+        };
+
+        const current = parseValue(currentValue);
+        const max = parseValue(totalValue);
+
+        if (current === undefined && max === undefined) {
                 return undefined;
         }
 
-        const trimmed = value.trim();
+        const result = {};
 
-        if (trimmed === "") {
-                return undefined;
+        if (current !== undefined) {
+                result.current = current;
         }
 
-        const numericValue = Number(trimmed);
-
-        if (Number.isFinite(numericValue)) {
-                return { current: numericValue };
+        if (max !== undefined) {
+                result.max = max;
         }
 
-        return { current: trimmed };
+        return result;
 };
 
 const formatManualPartyHitPoints = (hitPoints) => {
@@ -38,12 +64,19 @@ const formatManualPartyHitPoints = (hitPoints) => {
 
         if (typeof hitPoints === "object" && hitPoints !== null) {
                 const current = hitPoints.current ?? hitPoints.value ?? hitPoints;
+                const max = hitPoints.max ?? hitPoints.total ?? hitPoints.maximum;
 
                 if (current === undefined || current === null || current === "") {
                         return "";
                 }
 
-                return String(current);
+                const currentString = String(current);
+
+                if (max === undefined || max === null || max === "") {
+                        return currentString;
+                }
+
+                return `${currentString} / ${String(max)}`;
         }
 
         return String(hitPoints);
@@ -558,7 +591,10 @@ export default function Home() {
                 event.preventDefault();
                 if (!partyForm.name.trim()) return;
 
-                const manualHitPoints = parseManualPartyHitPoints(partyForm.hitPoints);
+                const manualHitPoints = parseManualPartyHitPoints(
+                        partyForm.hitPointsCurrent,
+                        partyForm.hitPointsTotal
+                );
 
                 setPartyMembers((prev) => [
                         ...prev,
@@ -1263,14 +1299,28 @@ export default function Home() {
                                                                                 <span>Current HP</span>
                                                                                 <input
                                                                                         type='number'
-                                                                                        value={partyForm.hitPoints}
+                                                                                        value={partyForm.hitPointsCurrent}
                                                                                         onChange={(event) =>
                                                                                                 setPartyForm((prev) => ({
                                                                                                         ...prev,
-                                                                                                        hitPoints: event.target.value,
+                                                                                                        hitPointsCurrent: event.target.value,
                                                                                                 }))
                                                                                         }
                                                                                         placeholder='e.g. 32'
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Total HP</span>
+                                                                                <input
+                                                                                        type='number'
+                                                                                        value={partyForm.hitPointsTotal}
+                                                                                        onChange={(event) =>
+                                                                                                setPartyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        hitPointsTotal: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 40'
                                                                                 />
                                                                         </label>
                                                                         <label className={styles.inputGroup}>
