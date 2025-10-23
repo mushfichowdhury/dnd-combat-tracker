@@ -10,13 +10,39 @@ const generateId = () => {
 };
 
 const emptyPartyForm = { name: "", initiative: "" };
-const emptyEnemyForm = {
-	name: "",
-	armorClass: "",
-	hitPoints: "",
-	initiative: "",
-	notes: "",
-};
+
+const ABILITY_SCORE_CONFIG = [
+        { key: "strength", label: "STR" },
+        { key: "dexterity", label: "DEX" },
+        { key: "constitution", label: "CON" },
+        { key: "intelligence", label: "INT" },
+        { key: "wisdom", label: "WIS" },
+        { key: "charisma", label: "CHA" },
+];
+
+const createEmptyAbilityScores = () =>
+        ABILITY_SCORE_CONFIG.reduce((accumulator, { key }) => {
+                accumulator[key] = "";
+                return accumulator;
+        }, {});
+
+const createEmptyEnemyAction = () => ({
+        name: "",
+        description: "",
+});
+
+const createEmptyEnemyActions = () => [createEmptyEnemyAction()];
+
+const createEmptyEnemyForm = () => ({
+        name: "",
+        armorClass: "",
+        hitPoints: "",
+        initiative: "",
+        speed: "",
+        abilityScores: createEmptyAbilityScores(),
+        actions: createEmptyEnemyActions(),
+        notes: "",
+});
 
 const formatClassSummary = (classes = []) => {
 	if (!Array.isArray(classes) || classes.length === 0) {
@@ -133,13 +159,104 @@ const formatMonsterActions = (actions) => {
         return formatted.join("\n\n");
 };
 
-const mapMonsterToEnemyForm = (monster, previousForm = emptyEnemyForm) => {
+const formatMonsterSpeed = (speed) => {
+        if (!speed) {
+                return "";
+        }
+
+        if (typeof speed === "string") {
+                return speed.trim();
+        }
+
+        if (typeof speed === "object") {
+                const parts = Object.entries(speed)
+                        .map(([movementType, value]) => {
+                                if (value === undefined || value === null) {
+                                        return "";
+                                }
+
+                                const trimmedValue =
+                                        typeof value === "string"
+                                                ? value.trim()
+                                                : String(value).trim();
+
+                                if (!trimmedValue) {
+                                        return "";
+                                }
+
+                                const label = movementType.replace(/_/g, " ");
+                                return `${label}: ${trimmedValue}`;
+                        })
+                        .filter(Boolean);
+
+                return parts.join(", ");
+        }
+
+        return "";
+};
+
+const mapMonsterActionsToForm = (actions) => {
+        if (!Array.isArray(actions)) {
+                return [];
+        }
+
+        return actions
+                .map((action) => {
+                        if (!action) {
+                                return null;
+                        }
+
+                        const name =
+                                typeof action.name === "string" ? action.name.trim() : "";
+                        const description =
+                                typeof action.desc === "string"
+                                        ? action.desc.trim()
+                                        : typeof action.description === "string"
+                                        ? action.description.trim()
+                                        : "";
+
+                        if (!name && !description) {
+                                return null;
+                        }
+
+                        return { name, description };
+                })
+                .filter(Boolean);
+};
+
+const mapAbilityScoresToForm = (scores, previousScores = createEmptyAbilityScores()) => {
+        const baseScores = { ...createEmptyAbilityScores(), ...previousScores };
+
+        if (!scores || typeof scores !== "object") {
+                return baseScores;
+        }
+
+        ABILITY_SCORE_CONFIG.forEach(({ key }) => {
+                const value = scores[key];
+
+                if (value === undefined || value === null) {
+                        return;
+                }
+
+                baseScores[key] = String(value);
+        });
+
+        return baseScores;
+};
+
+const mapMonsterToEnemyForm = (monster, previousForm = createEmptyEnemyForm()) => {
         if (!monster || typeof monster !== "object") {
                 return previousForm;
         }
 
         const formattedArmorClass = formatMonsterArmorClass(monster.armor_class);
         const formattedActions = formatMonsterActions(monster.actions);
+        const formattedSpeed = formatMonsterSpeed(monster.speed);
+        const mappedActions = mapMonsterActionsToForm(monster.actions);
+        const abilityScores = mapAbilityScoresToForm(
+                monster.ability_scores,
+                previousForm.abilityScores
+        );
 
         return {
                 ...previousForm,
@@ -152,15 +269,62 @@ const mapMonsterToEnemyForm = (monster, previousForm = emptyEnemyForm) => {
                         monster.hit_points !== undefined && monster.hit_points !== null
                                 ? String(monster.hit_points)
                                 : previousForm.hitPoints ?? "",
-                notes: formattedActions || previousForm.notes || "",
+                speed: formattedSpeed || previousForm.speed || "",
+                abilityScores,
+                actions:
+                        mappedActions.length > 0
+                                ? mappedActions
+                                : Array.isArray(previousForm.actions) && previousForm.actions.length > 0
+                                ? previousForm.actions
+                                : createEmptyEnemyActions(),
+                notes:
+                        formattedActions && !(previousForm.notes && previousForm.notes.trim() !== "")
+                                ? formattedActions
+                                : previousForm.notes ?? "",
         };
+};
+
+const formatAbilityScoreDisplay = (value) => {
+        if (value === undefined || value === null) {
+                return null;
+        }
+
+        if (typeof value === "number") {
+                if (!Number.isFinite(value)) {
+                        return null;
+                }
+
+                const modifier = Math.floor((value - 10) / 2);
+                const sign = modifier >= 0 ? "+" : "";
+                return `${value} (${sign}${modifier})`;
+        }
+
+        if (typeof value === "string") {
+                const trimmed = value.trim();
+
+                if (trimmed === "") {
+                        return null;
+                }
+
+                const numericValue = Number(trimmed);
+
+                if (Number.isFinite(numericValue)) {
+                        const modifier = Math.floor((numericValue - 10) / 2);
+                        const sign = modifier >= 0 ? "+" : "";
+                        return `${numericValue} (${sign}${modifier})`;
+                }
+
+                return trimmed;
+        }
+
+        return null;
 };
 
 export default function Home() {
         const [partyMembers, setPartyMembers] = useState([]);
         const [enemies, setEnemies] = useState([]);
         const [partyForm, setPartyForm] = useState(emptyPartyForm);
-        const [enemyForm, setEnemyForm] = useState(emptyEnemyForm);
+        const [enemyForm, setEnemyForm] = useState(() => createEmptyEnemyForm());
         const [monsterSearch, setMonsterSearch] = useState("");
         const [monsterResults, setMonsterResults] = useState([]);
         const [isSearchingMonsters, setIsSearchingMonsters] = useState(false);
@@ -253,6 +417,73 @@ export default function Home() {
                 setMonsterResults([]);
                 setMonsterSearchError("");
                 setIsSearchingMonsters(false);
+        };
+
+        const handleEnemyAbilityScoreChange = (abilityKey, value) => {
+                setEnemyForm((prev) => ({
+                        ...prev,
+                        abilityScores: {
+                                ...(prev.abilityScores ?? createEmptyAbilityScores()),
+                                [abilityKey]: value,
+                        },
+                }));
+        };
+
+        const handleEnemyActionChange = (index, field, value) => {
+                setEnemyForm((prev) => {
+                        const currentActions = Array.isArray(prev.actions)
+                                ? prev.actions
+                                : createEmptyEnemyActions();
+
+                        const nextActions = currentActions.map((action, actionIndex) => {
+                                if (actionIndex !== index) {
+                                        return action;
+                                }
+
+                                return {
+                                        ...action,
+                                        [field]: value,
+                                };
+                        });
+
+                        return {
+                                ...prev,
+                                actions: nextActions,
+                        };
+                });
+        };
+
+        const handleAddEnemyAction = () => {
+                setEnemyForm((prev) => {
+                        const currentActions = Array.isArray(prev.actions)
+                                ? prev.actions
+                                : [];
+
+                        return {
+                                ...prev,
+                                actions: [...currentActions, createEmptyEnemyAction()],
+                        };
+                });
+        };
+
+        const handleRemoveEnemyAction = (index) => {
+                setEnemyForm((prev) => {
+                        const currentActions = Array.isArray(prev.actions)
+                                ? prev.actions
+                                : [];
+
+                        const nextActions = currentActions.filter(
+                                (_, actionIndex) => actionIndex !== index
+                        );
+
+                        return {
+                                ...prev,
+                                actions:
+                                        nextActions.length > 0
+                                                ? nextActions
+                                                : createEmptyEnemyActions(),
+                        };
+                });
         };
 
         const createPartyMemberFromDndBeyond = (data) => {
@@ -490,23 +721,68 @@ export default function Home() {
 		}
 	};
 
-	const handleEnemySubmit = (event) => {
-		event.preventDefault();
-		if (!enemyForm.name.trim()) return;
+        const handleEnemySubmit = (event) => {
+                event.preventDefault();
+                if (!enemyForm.name.trim()) return;
 
-		setEnemies((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: enemyForm.name.trim(),
-				armorClass: enemyForm.armorClass.trim(),
-				hitPoints: enemyForm.hitPoints.trim(),
-				initiative: Number(enemyForm.initiative) || 0,
-				notes: enemyForm.notes.trim(),
-			},
-		]);
-		setEnemyForm(emptyEnemyForm);
-	};
+                const speedValue =
+                        typeof enemyForm.speed === "string" ? enemyForm.speed.trim() : "";
+
+                const sanitizedAbilityScores = (() => {
+                        const scores = enemyForm.abilityScores ?? {};
+                        const result = {};
+
+                        ABILITY_SCORE_CONFIG.forEach(({ key }) => {
+                                const rawValue = scores[key];
+
+                                if (rawValue === undefined || rawValue === null) {
+                                        return;
+                                }
+
+                                const trimmed =
+                                        typeof rawValue === "string"
+                                                ? rawValue.trim()
+                                                : String(rawValue).trim();
+
+                                if (trimmed !== "") {
+                                        result[key] = trimmed;
+                                }
+                        });
+
+                        return Object.keys(result).length > 0 ? result : undefined;
+                })();
+
+                const sanitizedActions = Array.isArray(enemyForm.actions)
+                        ? enemyForm.actions
+                                  .map((action) => ({
+                                          name:
+                                                  typeof action?.name === "string"
+                                                          ? action.name.trim()
+                                                          : "",
+                                          description:
+                                                  typeof action?.description === "string"
+                                                          ? action.description.trim()
+                                                          : "",
+                                  }))
+                                  .filter((action) => action.name || action.description)
+                        : [];
+
+                setEnemies((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: enemyForm.name.trim(),
+                                armorClass: enemyForm.armorClass.trim(),
+                                hitPoints: enemyForm.hitPoints.trim(),
+                                initiative: Number(enemyForm.initiative) || 0,
+                                speed: speedValue,
+                                abilityScores: sanitizedAbilityScores,
+                                actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
+                                notes: enemyForm.notes.trim(),
+                        },
+                ]);
+                setEnemyForm(createEmptyEnemyForm());
+        };
 
 	const removePartyMember = (id) => {
 		setPartyMembers((prev) => prev.filter((member) => member.id !== id));
@@ -1141,65 +1417,170 @@ export default function Home() {
                                                                         <label className={styles.inputGroup}>
                                                                                 <span>Creature Name</span>
                                                                                 <input
-											type='text'
-											value={enemyForm.name}
-											onChange={(event) =>
-												setEnemyForm((prev) => ({
-													...prev,
-													name: event.target.value,
-												}))
-											}
-											placeholder='e.g. Goblin Shaman'
-											required
-										/>
-									</label>
-									<label className={styles.inputGroup}>
-										<span>Initiative</span>
-										<input
-											type='number'
-											value={enemyForm.initiative}
-											onChange={(event) =>
-												setEnemyForm((prev) => ({
-													...prev,
-													initiative: event.target.value,
-												}))
-											}
-											placeholder='e.g. 14'
-										/>
-									</label>
-									<label className={styles.inputGroup}>
-										<span>Armor Class</span>
-										<input
-											type='text'
-											value={enemyForm.armorClass}
-											onChange={(event) =>
-												setEnemyForm((prev) => ({
-													...prev,
-													armorClass: event.target.value,
-												}))
-											}
-											placeholder='e.g. 15 (leather armor)'
-										/>
-									</label>
-									<label className={styles.inputGroup}>
-										<span>Hit Points</span>
-										<input
-											type='text'
-											value={enemyForm.hitPoints}
-											onChange={(event) =>
-												setEnemyForm((prev) => ({
-													...prev,
-													hitPoints: event.target.value,
-												}))
-											}
-											placeholder='e.g. 36 (8d8)'
-										/>
-									</label>
-								</div>
-								<fieldset className={styles.fieldset}>
-									<legend>Notes</legend>
-									<label className={styles.inputGroup}>
-										<textarea
+                                                                                        type='text'
+                                                                                        value={enemyForm.name}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        name: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. Goblin Shaman'
+                                                                                        required
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Initiative</span>
+                                                                                <input
+                                                                                        type='number'
+                                                                                        value={enemyForm.initiative}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        initiative: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 14'
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Armor Class</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={enemyForm.armorClass}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        armorClass: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 15 (leather armor)'
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Hit Points</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={enemyForm.hitPoints}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        hitPoints: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 36 (8d8)'
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Speed</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={enemyForm.speed}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        speed: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 30 ft., climb 20 ft.'
+                                                                                />
+                                                                        </label>
+                                                                </div>
+                                                                <fieldset className={styles.fieldset}>
+                                                                        <legend>Ability Scores</legend>
+                                                                        <div className={styles.abilityScoreFields}>
+                                                                                {ABILITY_SCORE_CONFIG.map(({ key, label }) => (
+                                                                                        <label key={key} className={styles.inputGroup}>
+                                                                                                <span>{label}</span>
+                                                                                                <input
+                                                                                                        type='number'
+                                                                                                        value={
+                                                                                                                enemyForm.abilityScores?.[key] ?? ""
+                                                                                                        }
+                                                                                                        onChange={(event) =>
+                                                                                                                handleEnemyAbilityScoreChange(
+                                                                                                                        key,
+                                                                                                                        event.target.value
+                                                                                                                )
+                                                                                                        }
+                                                                                                        placeholder='--'
+                                                                                                />
+                                                                                        </label>
+                                                                                ))}
+                                                                        </div>
+                                                                </fieldset>
+                                                                <fieldset className={styles.fieldset}>
+                                                                        <legend>Actions</legend>
+                                                                        <div className={styles.actionList}>
+                                                                                {enemyForm.actions.map((action, index) => {
+                                                                                        const canRemoveAction =
+                                                                                                enemyForm.actions.length > 1;
+
+                                                                                        return (
+                                                                                                <div
+                                                                                                        key={`enemy-action-${index}`}
+                                                                                                        className={styles.actionItem}
+                                                                                                >
+                                                                                                        <label className={styles.inputGroup}>
+                                                                                                                <span>Action Name</span>
+                                                                                                                <input
+                                                                                                                        type='text'
+                                                                                                                        value={action.name}
+                                                                                                                        onChange={(event) =>
+                                                                                                                                handleEnemyActionChange(
+                                                                                                                                        index,
+                                                                                                                                        "name",
+                                                                                                                                        event.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        placeholder='e.g. Scimitar'
+                                                                                                                />
+                                                                                                        </label>
+                                                                                                        <label className={styles.inputGroup}>
+                                                                                                                <span>Description</span>
+                                                                                                                <textarea
+                                                                                                                        rows={3}
+                                                                                                                        value={action.description}
+                                                                                                                        onChange={(event) =>
+                                                                                                                                handleEnemyActionChange(
+                                                                                                                                        index,
+                                                                                                                                        "description",
+                                                                                                                                        event.target.value
+                                                                                                                                )
+                                                                                                                        }
+                                                                                                                        placeholder='Attack bonus, reach, and damage.'
+                                                                                                                />
+                                                                                                        </label>
+                                                                                                        <button
+                                                                                                                type='button'
+                                                                                                                className={styles.secondaryButton}
+                                                                                                                onClick={() =>
+                                                                                                                        handleRemoveEnemyAction(
+                                                                                                                                index
+                                                                                                                        )
+                                                                                                                }
+                                                                                                                disabled={!canRemoveAction}
+                                                                                                        >
+                                                                                                                Remove Action
+                                                                                                        </button>
+                                                                                                </div>
+                                                                                        );
+                                                                                })}
+                                                                        </div>
+                                                                        <div className={styles.actionFooter}>
+                                                                                <button
+                                                                                        type='button'
+                                                                                        className={styles.secondaryButton}
+                                                                                        onClick={handleAddEnemyAction}
+                                                                                >
+                                                                                        Add Action
+                                                                                </button>
+                                                                        </div>
+                                                                </fieldset>
+                                                                <fieldset className={styles.fieldset}>
+                                                                        <legend>Notes</legend>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <textarea
 											rows={10}
 											value={enemyForm.notes}
 											onChange={(event) =>
@@ -1220,39 +1601,106 @@ export default function Home() {
 
 							{enemies.length > 0 && (
 								<ul className={styles.cardList}>
-									{enemies.map((enemy) => (
-										<li key={enemy.id} className={styles.card}>
-											<div className={styles.cardHeader}>
-												<h3>{enemy.name}</h3>
-												<p className={styles.statLine}>
-													Initiative: <strong>{enemy.initiative}</strong>
-												</p>
-											</div>
-											<div className={styles.statBlock}>
-												{enemy.armorClass && (
-													<p>
-														<span>AC:</span> {enemy.armorClass}
+									{enemies.map((enemy) => {
+										const abilityScores = enemy.abilityScores ?? enemy.ability_scores ?? {};
+										const hasAbilityScores = ABILITY_SCORE_CONFIG.some(({ key }) => {
+											const value = abilityScores?.[key];
+											if (typeof value === "string") {
+												return value.trim() !== "";
+											}
+											return value !== undefined && value !== null;
+										});
+										const actions = Array.isArray(enemy.actions) ? enemy.actions : [];
+										const formattedActions = actions
+											.map((action, index) => {
+												if (!action) {
+													return null;
+												}
+												const name =
+													typeof action.name === "string" ? action.name.trim() : "";
+												const description =
+													typeof action.description === "string"
+													? action.description.trim()
+													: "";
+												if (!name && !description) {
+													return null;
+												}
+												return {
+													key: `${enemy.id}-action-${index}`,
+													name,
+													description,
+												};
+											})
+											.filter(Boolean);
+										const speed = typeof enemy.speed === "string" ? enemy.speed.trim() : "";
+										return (
+											<li key={enemy.id} className={styles.card}>
+												<div className={styles.cardHeader}>
+													<h3>{enemy.name}</h3>
+													<p className={styles.statLine}>
+														Initiative: <strong>{enemy.initiative}</strong>
 													</p>
-												)}
-												{enemy.hitPoints && (
-													<p>
-														<span>HP:</span> {enemy.hitPoints}
-													</p>
-												)}
-												{enemy.notes && (
-													<p className={styles.notes}>{enemy.notes}</p>
-												)}
-											</div>
-											<button
-												type='button'
-												className={styles.removeButton}
-												onClick={() => removeEnemy(enemy.id)}>
-												Remove
-											</button>
-										</li>
-									))}
-								</ul>
-							)}
+												</div>
+												<div className={styles.statBlock}>
+													{enemy.armorClass && (
+														<p>
+															<span>AC:</span> {enemy.armorClass}
+														</p>
+													)}
+													{enemy.hitPoints && (
+														<p>
+															<span>HP:</span> {enemy.hitPoints}
+														</p>
+													)}
+													{speed && (
+														<p>
+															<span>Speed:</span> {speed}
+														</p>
+													)}
+													{hasAbilityScores && (
+														<div>
+															<span>Ability Scores</span>
+															<div className={styles.abilityScoreList}>
+																{ABILITY_SCORE_CONFIG.map(({ key, label }) => {
+																	const formattedScore = formatAbilityScoreDisplay(abilityScores?.[key]);
+																	return (
+																		<div key={`${enemy.id}-${key}`} className={styles.abilityScoreListItem}>
+																			<span>{label}</span>
+																			<strong>{formattedScore ?? "--"}</strong>
+																		</div>
+																	);
+																})}
+															</div>
+														</div>
+													)}
+													{formattedActions.length > 0 && (
+														<div className={styles.attackList}>
+															<h4>Actions</h4>
+															<ul>
+																{formattedActions.map((action) => (
+																	<li key={action.key}>
+																		{action.name && <strong>{action.name}</strong>}
+																		{action.description && <p>{action.description}</p>}
+																	</li>
+																))}
+															</ul>
+														</div>
+													)}
+													{enemy.notes && (
+														<p className={styles.notes}>{enemy.notes}</p>
+													)}
+												</div>
+												<button
+													type='button'
+													className={styles.removeButton}
+													onClick={() => removeEnemy(enemy.id)}>
+													Remove
+                                                                                                </button>
+                                                                                                </li>
+                                                                                        );
+                                                                                })}
+                                                                        </ul>
+                                                                )}
 						</section>
 					</div>
 				</main>
