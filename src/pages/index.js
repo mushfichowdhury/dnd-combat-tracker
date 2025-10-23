@@ -17,7 +17,6 @@ const emptyEnemyForm = {
 	initiative: "",
 	notes: "",
 };
-const emptyAttackForm = { name: "", toHit: "", damage: "" };
 
 const formatClassSummary = (classes = []) => {
 	if (!Array.isArray(classes) || classes.length === 0) {
@@ -71,8 +70,6 @@ export default function Home() {
 	const [enemies, setEnemies] = useState([]);
 	const [partyForm, setPartyForm] = useState(emptyPartyForm);
 	const [enemyForm, setEnemyForm] = useState(emptyEnemyForm);
-	const [attackForm, setAttackForm] = useState(emptyAttackForm);
-	const [enemyAttacks, setEnemyAttacks] = useState([]);
 	const [activeCombatantId, setActiveCombatantId] = useState(null);
 	const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
 	const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
@@ -316,42 +313,23 @@ export default function Home() {
 		}
 	};
 
-	const handleAttackSubmit = (event) => {
-		event.preventDefault();
-		if (!attackForm.name.trim()) return;
+        const handleEnemySubmit = (event) => {
+                event.preventDefault();
+                if (!enemyForm.name.trim()) return;
 
-		setEnemyAttacks((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: attackForm.name.trim(),
-				toHit: attackForm.toHit.trim(),
-				damage: attackForm.damage.trim(),
-			},
-		]);
-		setAttackForm(emptyAttackForm);
-	};
-
-	const handleEnemySubmit = (event) => {
-		event.preventDefault();
-		if (!enemyForm.name.trim()) return;
-
-		setEnemies((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: enemyForm.name.trim(),
-				armorClass: enemyForm.armorClass.trim(),
-				hitPoints: enemyForm.hitPoints.trim(),
-				initiative: Number(enemyForm.initiative) || 0,
-				notes: enemyForm.notes.trim(),
-				attacks: enemyAttacks,
-			},
-		]);
-		setEnemyForm(emptyEnemyForm);
-		setAttackForm(emptyAttackForm);
-		setEnemyAttacks([]);
-	};
+                setEnemies((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: enemyForm.name.trim(),
+                                armorClass: enemyForm.armorClass.trim(),
+                                hitPoints: enemyForm.hitPoints.trim(),
+                                initiative: Number(enemyForm.initiative) || 0,
+                                notes: enemyForm.notes.trim(),
+                        },
+                ]);
+                setEnemyForm(emptyEnemyForm);
+        };
 
 	const removePartyMember = (id) => {
 		setPartyMembers((prev) => prev.filter((member) => member.id !== id));
@@ -359,10 +337,6 @@ export default function Home() {
 
 	const removeEnemy = (id) => {
 		setEnemies((prev) => prev.filter((enemy) => enemy.id !== id));
-	};
-
-	const removePendingAttack = (id) => {
-		setEnemyAttacks((prev) => prev.filter((attack) => attack.id !== id));
 	};
 
 	const handleImportedInitiativeChange = (id, value) => {
@@ -662,13 +636,9 @@ export default function Home() {
 													{combatant.hitPoints && (
 														<span>HP {combatant.hitPoints}</span>
 													)}
-													{combatant.attacks.length > 0 && (
-														<span>
-															{combatant.attacks
-																.map((attack) => attack.name)
-																.join(", ")}
-														</span>
-													)}
+                                                                                                {combatant.notes && (
+                                                                                                        <span>{combatant.notes}</span>
+                                                                                                )}
 												</div>
 											)}
 										</li>
@@ -947,91 +917,23 @@ export default function Home() {
 										/>
 									</label>
 								</div>
-								<label className={styles.inputGroup}>
-									<span>Notes</span>
-									<textarea
-										rows={3}
-										value={enemyForm.notes}
-										onChange={(event) =>
-											setEnemyForm((prev) => ({
-												...prev,
-												notes: event.target.value,
-											}))
-										}
-										placeholder='Legendary resistances, vulnerabilities, or tactics.'
-									/>
-								</label>
-
-								<fieldset className={styles.fieldset}>
-									<legend>Attacks</legend>
-									<div className={styles.formGrid}>
-										<label className={styles.inputGroup}>
-											<span>Attack Name</span>
-											<input
-												type='text'
-												value={attackForm.name}
-												onChange={(event) =>
-													setAttackForm((prev) => ({
-														...prev,
-														name: event.target.value,
-													}))
-												}
-												placeholder='e.g. Claw'
-											/>
-										</label>
-										<label className={styles.inputGroup}>
-											<span>To Hit</span>
-											<input
-												type='text'
-												value={attackForm.toHit}
-												onChange={(event) =>
-													setAttackForm((prev) => ({
-														...prev,
-														toHit: event.target.value,
-													}))
-												}
-												placeholder='e.g. +5'
-											/>
-										</label>
-										<label className={styles.inputGroup}>
-											<span>Damage</span>
-											<input
-												type='text'
-												value={attackForm.damage}
-												onChange={(event) =>
-													setAttackForm((prev) => ({
-														...prev,
-														damage: event.target.value,
-													}))
-												}
-												placeholder='e.g. 1d8 + 3 slashing'
-											/>
-										</label>
-									</div>
-									<button
-										type='button'
-										className={styles.secondaryButton}
-										onClick={handleAttackSubmit}>
-										Add Attack
-									</button>
-									{enemyAttacks.length > 0 && (
-										<ul className={styles.inlineList}>
-											{enemyAttacks.map((attack) => (
-												<li key={attack.id}>
-													<strong>{attack.name}</strong>
-													{attack.toHit && ` | ${attack.toHit} to hit`}
-													{attack.damage && ` | ${attack.damage}`}
-													<button
-														type='button'
-														className={styles.removeLink}
-														onClick={() => removePendingAttack(attack.id)}>
-														Remove
-													</button>
-												</li>
-											))}
-										</ul>
-									)}
-								</fieldset>
+                                                                <fieldset className={styles.fieldset}>
+                                                                        <legend>Notes</legend>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Notes</span>
+                                                                                <textarea
+                                                                                        rows={6}
+                                                                                        value={enemyForm.notes}
+                                                                                        onChange={(event) =>
+                                                                                                setEnemyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        notes: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='Legendary resistances, vulnerabilities, or tactics.'
+                                                                                />
+                                                                        </label>
+                                                                </fieldset>
 
 								<button type='submit' className={styles.primaryButton}>
 									Add Enemy
@@ -1061,20 +963,6 @@ export default function Home() {
 												)}
 												{enemy.notes && (
 													<p className={styles.notes}>{enemy.notes}</p>
-												)}
-												{enemy.attacks.length > 0 && (
-													<div className={styles.attackList}>
-														<h4>Attacks</h4>
-														<ul>
-															{enemy.attacks.map((attack) => (
-																<li key={attack.id}>
-																	<strong>{attack.name}</strong>
-																	{attack.toHit && ` | ${attack.toHit} to hit`}
-																	{attack.damage && ` | ${attack.damage}`}
-																</li>
-															))}
-														</ul>
-													</div>
 												)}
 											</div>
 											<button
