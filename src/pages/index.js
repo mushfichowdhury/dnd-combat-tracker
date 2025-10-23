@@ -9,7 +9,45 @@ const generateId = () => {
 	return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-const emptyPartyForm = { name: "", initiative: "" };
+const emptyPartyForm = { name: "", initiative: "", hitPoints: "" };
+
+const parseManualPartyHitPoints = (value) => {
+        if (typeof value !== "string") {
+                return undefined;
+        }
+
+        const trimmed = value.trim();
+
+        if (trimmed === "") {
+                return undefined;
+        }
+
+        const numericValue = Number(trimmed);
+
+        if (Number.isFinite(numericValue)) {
+                return { current: numericValue };
+        }
+
+        return { current: trimmed };
+};
+
+const formatManualPartyHitPoints = (hitPoints) => {
+        if (!hitPoints) {
+                return "";
+        }
+
+        if (typeof hitPoints === "object" && hitPoints !== null) {
+                const current = hitPoints.current ?? hitPoints.value ?? hitPoints;
+
+                if (current === undefined || current === null || current === "") {
+                        return "";
+                }
+
+                return String(current);
+        }
+
+        return String(hitPoints);
+};
 
 const ENEMY_NOTE_PREVIEW_LENGTH = 140;
 
@@ -520,20 +558,23 @@ export default function Home() {
 		};
 	};
 
-	const handlePartySubmit = (event) => {
-		event.preventDefault();
-		if (!partyForm.name.trim()) return;
+        const handlePartySubmit = (event) => {
+                event.preventDefault();
+                if (!partyForm.name.trim()) return;
 
-		setPartyMembers((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: partyForm.name.trim(),
-				initiative: Number(partyForm.initiative) || 0,
-			},
-		]);
-		setPartyForm(emptyPartyForm);
-	};
+                const manualHitPoints = parseManualPartyHitPoints(partyForm.hitPoints);
+
+                setPartyMembers((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: partyForm.name.trim(),
+                                initiative: Number(partyForm.initiative) || 0,
+                                ...(manualHitPoints ? { hitPoints: manualHitPoints } : {}),
+                        },
+                ]);
+                setPartyForm(emptyPartyForm);
+        };
 
 	const handleDndBeyondImport = async (event) => {
 		event.preventDefault();
@@ -1201,11 +1242,11 @@ export default function Home() {
 							</p>
 							<form onSubmit={handlePartySubmit} className={styles.form}>
 								<div className={styles.formGrid}>
-									<label className={styles.inputGroup}>
-										<span>Character Name</span>
-										<input
-											type='text'
-											value={partyForm.name}
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Character Name</span>
+                                                                                <input
+                                                                                        type='text'
+                                                                                        value={partyForm.name}
 											onChange={(event) =>
 												setPartyForm((prev) => ({
 													...prev,
@@ -1213,14 +1254,28 @@ export default function Home() {
 												}))
 											}
 											placeholder='e.g. Lyra the Swift'
-											required
-										/>
-									</label>
-									<label className={styles.inputGroup}>
-										<span>Initiative</span>
-										<input
-											type='number'
-											value={partyForm.initiative}
+                                                                                        required
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Current HP</span>
+                                                                                <input
+                                                                                        type='number'
+                                                                                        value={partyForm.hitPoints}
+                                                                                        onChange={(event) =>
+                                                                                                setPartyForm((prev) => ({
+                                                                                                        ...prev,
+                                                                                                        hitPoints: event.target.value,
+                                                                                                }))
+                                                                                        }
+                                                                                        placeholder='e.g. 32'
+                                                                                />
+                                                                        </label>
+                                                                        <label className={styles.inputGroup}>
+                                                                                <span>Initiative</span>
+                                                                                <input
+                                                                                        type='number'
+                                                                                        value={partyForm.initiative}
 											onChange={(event) =>
 												setPartyForm((prev) => ({
 													...prev,
@@ -1311,6 +1366,11 @@ export default function Home() {
 												{member.playerName && (
 													<p className={styles.statLine}>
 														Player: <strong>{member.playerName}</strong>
+													</p>
+												)}
+												{member.source !== "dndbeyond" && member.hitPoints && (
+													<p className={styles.statLine}>
+														Hit Points: <strong>{formatManualPartyHitPoints(member.hitPoints)}</strong>
 													</p>
 												)}
 												{member.source === "dndbeyond" ? (
