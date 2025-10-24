@@ -1,8 +1,9 @@
 import styles from "@/styles/Home.module.css";
 import {
-	ABILITY_SCORE_CONFIG,
-	formatAbilityScoreDisplay,
+        ABILITY_SCORE_CONFIG,
+        formatAbilityScoreDisplay,
 } from "@/lib/combatFormatting";
+import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
 const Enemies = ({
 	enemyForm,
@@ -129,18 +130,26 @@ const Enemies = ({
 					</label>
 					<label className={styles.inputGroup}>
 						<span>Initiative</span>
-						<input
-							type='number'
-							value={enemyForm.initiative}
-							onChange={(event) =>
-								setEnemyForm((prev) => ({
-									...prev,
-									initiative: event.target.value,
-								}))
-							}
-							placeholder='e.g. 14'
-						/>
-					</label>
+                                                <input
+                                                        type='number'
+                                                        inputMode='numeric'
+                                                        value={enemyForm.initiative}
+                                                        onChange={(event) => {
+                                                                const { value } = event.target;
+
+                                                                if (!isValidInitiativeInput(value)) {
+                                                                        return;
+                                                                }
+
+                                                                setEnemyForm((prev) => ({
+                                                                        ...prev,
+                                                                        initiative: value,
+                                                                }));
+                                                        }}
+                                                        placeholder='e.g. 14'
+                                                        required
+                                                />
+                                        </label>
 					<label className={styles.inputGroup}>
 						<span>Armor Class</span>
 						<input
