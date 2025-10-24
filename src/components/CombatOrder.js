@@ -4,10 +4,7 @@ import styles from "@/styles/Home.module.css";
 import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 import { STATUS_CONDITION_OPTIONS } from "@/lib/statusConditions";
 
-const BASE_STATUS_OPTIONS = [
-        { value: "none", label: "Status Condition" },
-        { value: "custom", label: "Custom" },
-];
+const BASE_STATUS_OPTIONS = [{ value: "none", label: "Status Condition" }];
 
 const STATUS_OPTIONS = [...BASE_STATUS_OPTIONS, ...STATUS_CONDITION_OPTIONS];
 
@@ -140,6 +137,17 @@ const CombatOrder = ({
                                                 const isConcentrating = Boolean(
                                                         combatantStatus.concentration
                                                 );
+                                                const statusOptions = STATUS_OPTIONS;
+                                                const statusSelectValue =
+                                                        statusValue === "custom" ? "none" : statusValue;
+                                                const statusBadgeLabel =
+                                                        statusValue === "custom"
+                                                                ? combatantStatus.detail?.trim() || "Status"
+                                                                : STATUS_LABELS[statusValue] || "Status";
+                                                const statusBadgeDetail =
+                                                        statusValue === "custom"
+                                                                ? ""
+                                                                : combatantStatus.detail?.trim() || "";
 
 						let partyCurrentValue;
 						if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -302,9 +310,9 @@ const CombatOrder = ({
 											</span>
                                                                                         {statusValue !== "none" ? (
                                                                                                 <span className={styles.statusBadge}>
-                                                                                                        {STATUS_LABELS[statusValue] || "Status"}
-                                                                                                        {combatantStatus.detail
-                                                                                                                ? ` (${combatantStatus.detail})`
+                                                                                                        {statusBadgeLabel}
+                                                                                                        {statusBadgeDetail
+                                                                                                                ? ` (${statusBadgeDetail})`
                                                                                                                 : ""}
                                                                                                 </span>
                                                                                         ) : null}
@@ -348,7 +356,7 @@ const CombatOrder = ({
                                                                                                         <select
                                                                                                                 id={statusSelectId}
                                                                                                                 className={styles.statusSelect}
-                                                                                                                value={statusValue}
+                                                                                                                value={statusSelectValue}
                                                                                                                 onChange={(event) => {
                                                                                                                         const nextValue = event.target.value;
                                                                                                                         handleCombatStatusChange(
@@ -360,7 +368,7 @@ const CombatOrder = ({
                                                                                                                                 [combatant.id]: nextValue === "none",
                                                                                                                         }));
                                                                                                                 }}>
-                                                                                                                {STATUS_OPTIONS.map((option) => (
+                                                                                                                {statusOptions.map((option) => (
                                                                                                                         <option
                                                                                                                                 key={option.value}
                                                                                                                                 value={option.value}
