@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { ABILITY_SCORE_CONFIG } from "@/lib/combatFormatting";
+import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 import CombatOrder from "@/components/CombatOrder";
 import PartyMembers from "@/components/PartyMembers";
 import Enemies from "@/components/Enemies";
@@ -509,26 +510,33 @@ export default function Home() {
 		};
 	};
 
-	const handlePartySubmit = (event) => {
-		event.preventDefault();
-		if (!partyForm.name.trim()) return;
+        const handlePartySubmit = (event) => {
+                event.preventDefault();
+                const trimmedName = partyForm.name.trim();
+                if (!trimmedName) return;
 
-		const manualHitPoints = parseManualPartyHitPoints(
-			partyForm.hitPointsCurrent,
-			partyForm.hitPointsTotal
-		);
+                const initiativeValue = parseInitiativeValue(partyForm.initiative);
 
-		setPartyMembers((prev) => [
-			...prev,
-			{
-				id: generateId(),
-				name: partyForm.name.trim(),
-				initiative: Number(partyForm.initiative) || 0,
-				source: "manual",
-				...(manualHitPoints ? { hitPoints: manualHitPoints } : {}),
-			},
-		]);
-		setPartyForm(emptyPartyForm);
+                if (!Number.isFinite(initiativeValue)) {
+                        return;
+                }
+
+                const manualHitPoints = parseManualPartyHitPoints(
+                        partyForm.hitPointsCurrent,
+                        partyForm.hitPointsTotal
+                );
+
+                setPartyMembers((prev) => [
+                        ...prev,
+                        {
+                                id: generateId(),
+                                name: trimmedName,
+                                initiative: initiativeValue,
+                                source: "manual",
+                                ...(manualHitPoints ? { hitPoints: manualHitPoints } : {}),
+                        },
+                ]);
+                setPartyForm(emptyPartyForm);
 	};
 
 	const handleDndBeyondImport = async (event) => {
@@ -720,12 +728,19 @@ export default function Home() {
 		}
 	};
 
-	const handleEnemySubmit = (event) => {
-		event.preventDefault();
-		if (!enemyForm.name.trim()) return;
+        const handleEnemySubmit = (event) => {
+                event.preventDefault();
+                const trimmedName = enemyForm.name.trim();
+                if (!trimmedName) return;
 
-		const speedValue =
-			typeof enemyForm.speed === "string" ? enemyForm.speed.trim() : "";
+                const initiativeValue = parseInitiativeValue(enemyForm.initiative);
+
+                if (!Number.isFinite(initiativeValue)) {
+                        return;
+                }
+
+                const speedValue =
+                        typeof enemyForm.speed === "string" ? enemyForm.speed.trim() : "";
 
 		const sanitizedAbilityScores = (() => {
 			const scores = enemyForm.abilityScores ?? {};
@@ -782,13 +797,13 @@ export default function Home() {
                         ...prev,
                         {
                                 id: generateId(),
-                                name: enemyForm.name.trim(),
+                                name: trimmedName,
                                 armorClass: enemyForm.armorClass.trim(),
                                 hitPoints: parsedHitPoints,
                                 ...(parsedMaxHitPoints !== undefined
                                         ? { maxHitPoints: parsedMaxHitPoints }
                                         : {}),
-                                initiative: Number(enemyForm.initiative) || 0,
+                                initiative: initiativeValue,
                                 speed: speedValue,
                                 abilityScores: sanitizedAbilityScores,
                                 actions: sanitizedActions.length > 0 ? sanitizedActions : undefined,
@@ -1099,25 +1114,38 @@ export default function Home() {
 		}));
 	};
 
-	const handleImportedInitiativeChange = (id, value) => {
-		setPartyMembers((prev) =>
-			prev.map((member) => {
-				if (member.id !== id) {
-					return member;
-				}
+        const handleImportedInitiativeChange = (id, value) => {
+                setPartyMembers((prev) =>
+                        prev.map((member) => {
+                                if (member.id !== id) {
+                                        return member;
+                                }
 
-				if (value === "") {
-					return {
-						...member,
-						initiative: null,
-					};
-				}
+                                if (!isValidInitiativeInput(value)) {
+                                        return member;
+                                }
 
-				const numericValue = Number(value);
+                                const trimmedValue = value.trim();
 
-				if (!Number.isFinite(numericValue)) {
-					return member;
-				}
+                                if (trimmedValue === "") {
+                                        return {
+                                                ...member,
+                                                initiative: null,
+                                        };
+                                }
+
+                                if (trimmedValue === "-") {
+                                        return {
+                                                ...member,
+                                                initiative: "-",
+                                        };
+                                }
+
+                                const numericValue = Number(trimmedValue);
+
+                                if (!Number.isFinite(numericValue)) {
+                                        return member;
+                                }
 
 				return {
 					...member,

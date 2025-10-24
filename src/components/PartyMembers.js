@@ -1,8 +1,9 @@
 import styles from "@/styles/Home.module.css";
 import {
-	formatInitiativeDisplay,
-	formatManualPartyHitPoints,
+        formatInitiativeDisplay,
+        formatManualPartyHitPoints,
 } from "@/lib/combatFormatting";
+import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
 const PartyMembers = ({
 	partyMembers,
@@ -72,18 +73,26 @@ const PartyMembers = ({
 					</label>
 					<label className={styles.inputGroup}>
 						<span>Initiative</span>
-						<input
-							type='number'
-							value={partyForm.initiative}
-							onChange={(event) =>
-								setPartyForm((prev) => ({
-									...prev,
-									initiative: event.target.value,
-								}))
-							}
-							placeholder='e.g. 17'
-						/>
-					</label>
+                                                <input
+                                                        type='number'
+                                                        inputMode='numeric'
+                                                        value={partyForm.initiative}
+                                                        onChange={(event) => {
+                                                                const { value } = event.target;
+
+                                                                if (!isValidInitiativeInput(value)) {
+                                                                        return;
+                                                                }
+
+                                                                setPartyForm((prev) => ({
+                                                                        ...prev,
+                                                                        initiative: value,
+                                                                }));
+                                                        }}
+                                                        placeholder='e.g. 17'
+                                                        required
+                                                />
+                                        </label>
 				</div>
 				<button type='submit' className={styles.primaryButton}>
 					Add Party Member
@@ -166,18 +175,25 @@ const PartyMembers = ({
 									<label
 										className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
 										<span>Initiative</span>
-										<input
-											type='number'
-											className={styles.initiativeInput}
-											value={member.initiative ?? ""}
-											onChange={(event) =>
-												handleImportedInitiativeChange(
-													member.id,
-													event.target.value
-												)
-											}
-											placeholder='Enter initiative'
-										/>
+                                                                                <input
+                                                                                        type='number'
+                                                                                        inputMode='numeric'
+                                                                                        className={styles.initiativeInput}
+                                                                                        value={member.initiative ?? ""}
+                                                                                        onChange={(event) => {
+                                                                                                const { value } = event.target;
+
+                                                                                                if (!isValidInitiativeInput(value)) {
+                                                                                                        return;
+                                                                                                }
+
+                                                                                                handleImportedInitiativeChange(
+                                                                                                        member.id,
+                                                                                                        value
+                                                                                                );
+                                                                                        }}
+                                                                                        placeholder='Enter initiative'
+                                                                                />
 									</label>
 								) : (
 									<p className={styles.statLine}>
