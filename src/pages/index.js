@@ -319,7 +319,108 @@ const mapMonsterToEnemyForm = (
 	};
 };
 
-const CONCENTRATION_STATUS_VALUES = new Set(["concentrating", "custom"]);
+const createEmptyCombatStatus = () => ({
+        status: "none",
+        detail: "",
+        concentration: false,
+        concentrationDetail: "",
+});
+
+const normalizeCombatStatusEntry = (input) => {
+        if (!input || typeof input !== "object") {
+                return createEmptyCombatStatus();
+        }
+
+        const hasStatus = Object.prototype.hasOwnProperty.call(input, "status");
+        const hasDetail = Object.prototype.hasOwnProperty.call(input, "detail");
+        const hasConcentration = Object.prototype.hasOwnProperty.call(
+                input,
+                "concentration"
+        );
+        const hasConcentrationDetail = Object.prototype.hasOwnProperty.call(
+                input,
+                "concentrationDetail"
+        );
+
+        let status =
+                hasStatus && typeof input.status === "string" && input.status.trim() !== ""
+                        ? input.status.trim()
+                        : "none";
+        let detail =
+                hasDetail && typeof input.detail === "string" ? input.detail : "";
+        let concentration = hasConcentration ? Boolean(input.concentration) : false;
+        let concentrationDetail =
+                hasConcentrationDetail && typeof input.concentrationDetail === "string"
+                        ? input.concentrationDetail
+                        : "";
+
+        if (!hasConcentration && (status === "concentrating" || status === "custom")) {
+                concentration = true;
+                if (!concentrationDetail && detail) {
+                        concentrationDetail = detail;
+                }
+                status = "none";
+                detail = "";
+        }
+
+        if (status === "none") {
+                detail = "";
+        }
+
+        return {
+                status,
+                detail,
+                concentration,
+                concentrationDetail,
+        };
+};
+
+const mergeCombatStatusEntries = (previousEntry, updates) => {
+        const base = normalizeCombatStatusEntry(previousEntry);
+        const updateObject =
+                updates && typeof updates === "object" ? updates : {};
+
+        const hasStatusUpdate = Object.prototype.hasOwnProperty.call(
+                updateObject,
+                "status"
+        );
+        const hasDetailUpdate = Object.prototype.hasOwnProperty.call(
+                updateObject,
+                "detail"
+        );
+        const hasConcentrationUpdate = Object.prototype.hasOwnProperty.call(
+                updateObject,
+                "concentration"
+        );
+        const hasConcentrationDetailUpdate = Object.prototype.hasOwnProperty.call(
+                updateObject,
+                "concentrationDetail"
+        );
+
+        let nextStatus = hasStatusUpdate ? updateObject.status : base.status;
+        let nextDetail = hasDetailUpdate ? updateObject.detail : base.detail;
+        let nextConcentration = hasConcentrationUpdate
+                ? Boolean(updateObject.concentration)
+                : base.concentration;
+        let nextConcentrationDetail = hasConcentrationDetailUpdate
+                ? updateObject.concentrationDetail
+                : base.concentrationDetail;
+
+        if (nextStatus === "none") {
+                nextDetail = "";
+        }
+
+        if (hasConcentrationUpdate && !nextConcentration) {
+                nextConcentrationDetail = "";
+        }
+
+        return normalizeCombatStatusEntry({
+                status: nextStatus,
+                detail: nextDetail,
+                concentration: nextConcentration,
+                concentrationDetail: nextConcentrationDetail,
+        });
+};
 
 const buildStatusFromCharacterConditions = (conditions) => {
 	if (!Array.isArray(conditions) || conditions.length === 0) {
@@ -369,12 +470,12 @@ const buildStatusFromCharacterConditions = (conditions) => {
 		}
 	}
 
-	const detail = detailParts.join("; ");
+        const detail = detailParts.join("; ");
 
-	return {
-		status: primary.value,
-		detail: detail || "",
-	};
+        return normalizeCombatStatusEntry({
+                status: primary.value,
+                detail: detail || "",
+        });
 };
 
 export default function Home() {
@@ -472,30 +573,43 @@ export default function Home() {
 		};
 	}, [monsterSearch]);
 
-	useEffect(() => {
-		setCombatStatuses((previousStatuses) => {
-			const nextStatuses = { ...previousStatuses };
-			const combatants = [...partyMembers, ...enemies];
-			const validIds = new Set(combatants.map((combatant) => combatant.id));
-			let hasChanges = false;
+        useEffect(() => {
+                setCombatStatuses((previousStatuses) => {
+                        const nextStatuses = { ...previousStatuses };
+                        const combatants = [...partyMembers, ...enemies];
+                        const validIds = new Set(combatants.map((combatant) => combatant.id));
+                        let hasChanges = false;
 
-			for (const combatant of combatants) {
-				if (!nextStatuses[combatant.id]) {
-					nextStatuses[combatant.id] = { status: "none", detail: "" };
-					hasChanges = true;
-				}
-			}
+                        for (const combatant of combatants) {
+                                const existingStatus = nextStatuses[combatant.id];
+                                if (!existingStatus) {
+                                        nextStatuses[combatant.id] = createEmptyCombatStatus();
+                                        hasChanges = true;
+                                        continue;
+                                }
 
-			for (const id of Object.keys(nextStatuses)) {
-				if (!validIds.has(id)) {
-					delete nextStatuses[id];
-					hasChanges = true;
-				}
-			}
+                                const normalizedStatus = normalizeCombatStatusEntry(existingStatus);
+                                if (
+                                        normalizedStatus.status !== existingStatus.status ||
+                                        normalizedStatus.detail !== existingStatus.detail ||
+                                        normalizedStatus.concentration !== existingStatus.concentration ||
+                                        normalizedStatus.concentrationDetail !== existingStatus.concentrationDetail
+                                ) {
+                                        nextStatuses[combatant.id] = normalizedStatus;
+                                        hasChanges = true;
+                                }
+                        }
 
-			return hasChanges ? nextStatuses : previousStatuses;
-		});
-	}, [partyMembers, enemies]);
+                        for (const id of Object.keys(nextStatuses)) {
+                                if (!validIds.has(id)) {
+                                        delete nextStatuses[id];
+                                        hasChanges = true;
+                                }
+                        }
+
+                        return hasChanges ? nextStatuses : previousStatuses;
+                });
+        }, [partyMembers, enemies]);
 
 	const handleMonsterSelect = (monster) => {
 		setEnemyForm((prev) => mapMonsterToEnemyForm(monster, prev));
@@ -505,30 +619,39 @@ export default function Home() {
 		setIsSearchingMonsters(false);
 	};
 
-	const handleCombatStatusChange = (combatantId, status) => {
-		setCombatStatuses((previousStatuses) => {
-			const previousEntry = previousStatuses[combatantId] ?? {
-				status: "none",
-				detail: "",
-			};
-			const nextDetail = status === "none" ? "" : previousEntry.detail ?? "";
+        const handleCombatStatusChange = (combatantId, updates) => {
+                if (!combatantId) {
+                        return;
+                }
 
-			if (
-				previousEntry.status === status &&
-				previousEntry.detail === nextDetail
-			) {
-				return previousStatuses;
-			}
+                setCombatStatuses((previousStatuses) => {
+                        const previousEntry = previousStatuses[combatantId];
+                        const normalizedPrevious = normalizeCombatStatusEntry(previousEntry);
+                        const normalizedUpdates =
+                                updates && typeof updates === "object"
+                                        ? updates
+                                        : { status: updates };
+                        const nextEntry = mergeCombatStatusEntries(
+                                normalizedPrevious,
+                                normalizedUpdates
+                        );
 
-			return {
-				...previousStatuses,
-				[combatantId]: {
-					status,
-					detail: nextDetail,
-				},
-			};
-		});
-	};
+                        if (
+                                normalizedPrevious.status === nextEntry.status &&
+                                normalizedPrevious.detail === nextEntry.detail &&
+                                normalizedPrevious.concentration === nextEntry.concentration &&
+                                normalizedPrevious.concentrationDetail ===
+                                        nextEntry.concentrationDetail
+                        ) {
+                                return previousStatuses;
+                        }
+
+                        return {
+                                ...previousStatuses,
+                                [combatantId]: nextEntry,
+                        };
+                });
+        };
 
 	const dismissConcentrationReminder = () => {
 		setConcentrationReminder(null);
@@ -715,12 +838,12 @@ export default function Home() {
 
 			setPartyMembers((prev) => [...prev, newMember]);
 
-			if (importedStatus) {
-				setCombatStatuses((previous) => ({
-					...previous,
-					[newMember.id]: importedStatus,
-				}));
-			}
+                        if (importedStatus) {
+                                setCombatStatuses((previous) => ({
+                                        ...previous,
+                                        [newMember.id]: normalizeCombatStatusEntry(importedStatus),
+                                }));
+                        }
 
 			setDndBeyondIdentifier("");
 			setDndBeyondNotice(`Imported ${data.name} from D&D Beyond.`);
@@ -802,11 +925,13 @@ export default function Home() {
 					const importedStatus = buildStatusFromCharacterConditions(
 						character.conditions
 					);
-					if (importedStatus) {
-						statusUpdates[newMember.id] = importedStatus;
-					}
-				}
-			}
+                                        if (importedStatus) {
+                                                statusUpdates[newMember.id] = normalizeCombatStatusEntry(
+                                                        importedStatus
+                                                );
+                                        }
+                                }
+                        }
 
 			if (newMembers.length > 0) {
 				setPartyMembers((prev) => [...prev, ...newMembers]);
@@ -1378,7 +1503,9 @@ export default function Home() {
 
                                 updates.forEach(({ memberId, status }) => {
                                         if (status) {
-                                                nextStatuses[memberId] = status;
+                                                nextStatuses[memberId] = normalizeCombatStatusEntry(
+                                                        status
+                                                );
                                         } else if (memberId in nextStatuses) {
                                                 delete nextStatuses[memberId];
                                         }
@@ -1431,40 +1558,35 @@ export default function Home() {
 		}
 		const nextIndex = (currentIndex + 1) % combatOrder.length;
 
-		if (nextIndex === 0) {
-			const nextRound = roundCounter + 1;
-			setRoundCounter(nextRound);
+                if (nextIndex === 0) {
+                        const nextRound = roundCounter + 1;
+                        setRoundCounter(nextRound);
 
-			const activeStatuses = combatOrder
-				.map((combatant) => {
-					const statusEntry = combatStatuses[combatant.id];
+                        const activeConcentrators = combatOrder
+                                .map((combatant) => {
+                                        const statusEntry = combatStatuses[combatant.id];
 
-					if (!statusEntry || statusEntry.status === "none") {
-						return null;
-					}
+                                        if (!statusEntry || !statusEntry.concentration) {
+                                                return null;
+                                        }
 
-					if (!CONCENTRATION_STATUS_VALUES.has(statusEntry.status)) {
-						return null;
-					}
+                                        return {
+                                                id: combatant.id,
+                                                name: combatant.name,
+                                                detail: statusEntry.concentrationDetail ?? "",
+                                        };
+                                })
+                                .filter(Boolean);
 
-					return {
-						id: combatant.id,
-						name: combatant.name,
-						status: statusEntry.status,
-						detail: statusEntry.detail ?? "",
-					};
-				})
-				.filter(Boolean);
-
-			if (activeStatuses.length > 0) {
-				setConcentrationReminder({
-					round: nextRound,
-					combatants: activeStatuses,
-				});
-			} else {
-				setConcentrationReminder(null);
-			}
-		}
+                        if (activeConcentrators.length > 0) {
+                                setConcentrationReminder({
+                                        round: nextRound,
+                                        combatants: activeConcentrators,
+                                });
+                        } else {
+                                setConcentrationReminder(null);
+                        }
+                }
 
 		setActiveCombatantId(combatOrder[nextIndex].id);
 	};
