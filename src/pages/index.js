@@ -274,12 +274,12 @@ const mapAbilityScoresToForm = (
 };
 
 const mapMonsterToEnemyForm = (
-	monster,
-	previousForm = createEmptyEnemyForm()
+        monster,
+        previousForm = createEmptyEnemyForm()
 ) => {
-	if (!monster || typeof monster !== "object") {
-		return previousForm;
-	}
+        if (!monster || typeof monster !== "object") {
+                return previousForm;
+        }
 
 	const formattedArmorClass = formatMonsterArmorClass(monster.armor_class);
 	const formattedActions = formatMonsterActions(monster.actions);
@@ -290,38 +290,49 @@ const mapMonsterToEnemyForm = (
 		previousForm.abilityScores
 	);
 
-	return {
-		...previousForm,
-		name: monster.name ?? previousForm.name ?? "",
-		armorClass:
-			formattedArmorClass !== ""
-				? String(formattedArmorClass)
-				: previousForm.armorClass ?? "",
-		hitPoints:
-			monster.hit_points !== undefined && monster.hit_points !== null
-				? String(monster.hit_points)
-				: previousForm.hitPoints ?? "",
-		speed: formattedSpeed || previousForm.speed || "",
-		abilityScores,
-		actions:
-			mappedActions.length > 0
-				? mappedActions
-				: Array.isArray(previousForm.actions) && previousForm.actions.length > 0
-				? previousForm.actions
-				: createEmptyEnemyActions(),
-		notes:
-			formattedActions &&
-			!(previousForm.notes && previousForm.notes.trim() !== "")
-				? formattedActions
-				: previousForm.notes ?? "",
-	};
+        return {
+                ...previousForm,
+                name: monster.name ?? previousForm.name ?? "",
+                armorClass:
+                        formattedArmorClass !== ""
+                                ? String(formattedArmorClass)
+                                : previousForm.armorClass ?? "",
+                hitPoints:
+                        monster.hit_points !== undefined && monster.hit_points !== null
+                                ? String(monster.hit_points)
+                                : previousForm.hitPoints ?? "",
+                speed: formattedSpeed || previousForm.speed || "",
+                abilityScores,
+                actions:
+                        mappedActions.length > 0
+                                ? mappedActions
+                                : Array.isArray(previousForm.actions) && previousForm.actions.length > 0
+                                ? previousForm.actions
+                                : createEmptyEnemyActions(),
+                notes:
+                        formattedActions &&
+                        !(previousForm.notes && previousForm.notes.trim() !== "")
+                                ? formattedActions
+                                : previousForm.notes ?? "",
+        };
 };
 
+const CONCENTRATION_STATUS_VALUES = new Set([
+        "concentrating",
+        "bless",
+        "bane",
+        "hex",
+        "huntersMark",
+        "faerieFire",
+        "shieldOfFaith",
+        "custom",
+]);
+
 export default function Home() {
-	const [partyMembers, setPartyMembers] = useState([]);
-	const [enemies, setEnemies] = useState([]);
-	const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
-	const [enemyDamageInputs, setEnemyDamageInputs] = useState({});
+        const [partyMembers, setPartyMembers] = useState([]);
+        const [enemies, setEnemies] = useState([]);
+        const [expandedEnemyNotes, setExpandedEnemyNotes] = useState({});
+        const [enemyDamageInputs, setEnemyDamageInputs] = useState({});
 	const [partyDamageInputs, setPartyDamageInputs] = useState({});
 	const [partyForm, setPartyForm] = useState(emptyPartyForm);
 	const [enemyForm, setEnemyForm] = useState(() => createEmptyEnemyForm());
@@ -330,17 +341,20 @@ export default function Home() {
 	const [isSearchingMonsters, setIsSearchingMonsters] = useState(false);
 	const [monsterSearchError, setMonsterSearchError] = useState("");
 	const [activeCombatantId, setActiveCombatantId] = useState(null);
-	const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
-	const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
-	const [dndBeyondError, setDndBeyondError] = useState("");
-	const [dndBeyondNotice, setDndBeyondNotice] = useState("");
-	const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
-	const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
+        const [dndBeyondIdentifier, setDndBeyondIdentifier] = useState("");
+        const [isImportingDndBeyond, setIsImportingDndBeyond] = useState(false);
+        const [dndBeyondError, setDndBeyondError] = useState("");
+        const [dndBeyondNotice, setDndBeyondNotice] = useState("");
+        const [isRefreshingDndBeyondHp, setIsRefreshingDndBeyondHp] = useState(false);
+        const [dndBeyondRefreshError, setDndBeyondRefreshError] = useState("");
+        const [combatStatuses, setCombatStatuses] = useState({});
+        const [roundCounter, setRoundCounter] = useState(1);
+        const [concentrationReminder, setConcentrationReminder] = useState(null);
 
-	useEffect(() => {
-		const searchTerm = monsterSearch.trim();
+        useEffect(() => {
+                const searchTerm = monsterSearch.trim();
 
-		if (searchTerm.length < 2) {
+                if (searchTerm.length < 2) {
 			setMonsterResults([]);
 			setMonsterSearchError("");
 			setIsSearchingMonsters(false);
@@ -403,25 +417,97 @@ export default function Home() {
 			}
 		}, 300);
 
-		return () => {
-			isActive = false;
-			clearTimeout(timeoutId);
-		};
-	}, [monsterSearch]);
+                return () => {
+                        isActive = false;
+                        clearTimeout(timeoutId);
+                };
+        }, [monsterSearch]);
 
-	const handleMonsterSelect = (monster) => {
-		setEnemyForm((prev) => mapMonsterToEnemyForm(monster, prev));
-		setMonsterSearch("");
-		setMonsterResults([]);
-		setMonsterSearchError("");
-		setIsSearchingMonsters(false);
-	};
+        useEffect(() => {
+                setCombatStatuses((previousStatuses) => {
+                        const nextStatuses = { ...previousStatuses };
+                        const combatants = [...partyMembers, ...enemies];
+                        const validIds = new Set(combatants.map((combatant) => combatant.id));
+                        let hasChanges = false;
 
-	const handleEnemyAbilityScoreChange = (abilityKey, value) => {
-		setEnemyForm((prev) => ({
-			...prev,
-			abilityScores: {
-				...(prev.abilityScores ?? createEmptyAbilityScores()),
+                        for (const combatant of combatants) {
+                                if (!nextStatuses[combatant.id]) {
+                                        nextStatuses[combatant.id] = { status: "none", detail: "" };
+                                        hasChanges = true;
+                                }
+                        }
+
+                        for (const id of Object.keys(nextStatuses)) {
+                                if (!validIds.has(id)) {
+                                        delete nextStatuses[id];
+                                        hasChanges = true;
+                                }
+                        }
+
+                        return hasChanges ? nextStatuses : previousStatuses;
+                });
+        }, [partyMembers, enemies]);
+
+        const handleMonsterSelect = (monster) => {
+                setEnemyForm((prev) => mapMonsterToEnemyForm(monster, prev));
+                setMonsterSearch("");
+                setMonsterResults([]);
+                setMonsterSearchError("");
+                setIsSearchingMonsters(false);
+        };
+
+        const handleCombatStatusChange = (combatantId, status) => {
+                setCombatStatuses((previousStatuses) => {
+                        const previousEntry = previousStatuses[combatantId] ?? {
+                                status: "none",
+                                detail: "",
+                        };
+                        const nextDetail = status === "none" ? "" : previousEntry.detail ?? "";
+
+                        if (previousEntry.status === status && previousEntry.detail === nextDetail) {
+                                return previousStatuses;
+                        }
+
+                        return {
+                                ...previousStatuses,
+                                [combatantId]: {
+                                        status,
+                                        detail: nextDetail,
+                                },
+                        };
+                });
+        };
+
+        const handleCombatStatusDetailChange = (combatantId, detail) => {
+                setCombatStatuses((previousStatuses) => {
+                        const previousEntry = previousStatuses[combatantId] ?? {
+                                status: "none",
+                                detail: "",
+                        };
+
+                        if (previousEntry.detail === detail) {
+                                return previousStatuses;
+                        }
+
+                        return {
+                                ...previousStatuses,
+                                [combatantId]: {
+                                        ...previousEntry,
+                                        detail,
+                                },
+                        };
+                });
+        };
+
+        const dismissConcentrationReminder = () => {
+                setConcentrationReminder(null);
+        };
+
+        const handleEnemyAbilityScoreChange = (abilityKey, value) => {
+                setEnemyForm((prev) => ({
+                        ...prev,
+                        abilityScores: {
+                                ...(prev.abilityScores ?? createEmptyAbilityScores()),
 				[abilityKey]: value,
 			},
 		}));
@@ -1232,26 +1318,66 @@ export default function Home() {
 		});
 	}, [partyMembers, enemies]);
 
-	const advanceTurn = () => {
-		if (combatOrder.length === 0) return;
-		const currentIndex = combatOrder.findIndex(
-			(combatant) => combatant.id === activeCombatantId
-		);
-		if (currentIndex === -1) {
-			setActiveCombatantId(combatOrder[0].id);
-			return;
-		}
-		const nextIndex = (currentIndex + 1) % combatOrder.length;
-		setActiveCombatantId(combatOrder[nextIndex].id);
-	};
+        const advanceTurn = () => {
+                if (combatOrder.length === 0) return;
+                const currentIndex = combatOrder.findIndex(
+                        (combatant) => combatant.id === activeCombatantId
+                );
+                if (currentIndex === -1) {
+                        setActiveCombatantId(combatOrder[0].id);
+                        return;
+                }
+                const nextIndex = (currentIndex + 1) % combatOrder.length;
 
-	const resetTurn = () => {
-		if (combatOrder.length === 0) {
-			setActiveCombatantId(null);
-			return;
-		}
-		setActiveCombatantId(combatOrder[0].id);
-	};
+                if (nextIndex === 0) {
+                        const nextRound = roundCounter + 1;
+                        setRoundCounter(nextRound);
+
+                        const activeStatuses = combatOrder
+                                .map((combatant) => {
+                                        const statusEntry = combatStatuses[combatant.id];
+
+                                        if (!statusEntry || statusEntry.status === "none") {
+                                                return null;
+                                        }
+
+                                        if (!CONCENTRATION_STATUS_VALUES.has(statusEntry.status)) {
+                                                return null;
+                                        }
+
+                                        return {
+                                                id: combatant.id,
+                                                name: combatant.name,
+                                                status: statusEntry.status,
+                                                detail: statusEntry.detail ?? "",
+                                        };
+                                })
+                                .filter(Boolean);
+
+                        if (activeStatuses.length > 0) {
+                                setConcentrationReminder({
+                                        round: nextRound,
+                                        combatants: activeStatuses,
+                                });
+                        } else {
+                                setConcentrationReminder(null);
+                        }
+                }
+
+                setActiveCombatantId(combatOrder[nextIndex].id);
+        };
+
+        const resetTurn = () => {
+                if (combatOrder.length === 0) {
+                        setActiveCombatantId(null);
+                        setRoundCounter(1);
+                        setConcentrationReminder(null);
+                        return;
+                }
+                setActiveCombatantId(combatOrder[0].id);
+                setRoundCounter(1);
+                setConcentrationReminder(null);
+        };
 
 	const currentTurnIndex = useMemo(() => {
 		if (combatOrder.length === 0) return -1;
@@ -1261,15 +1387,22 @@ export default function Home() {
 		);
 	}, [combatOrder, activeCombatantId]);
 
-	const highlightedIndex = useMemo(() => {
-		if (combatOrder.length === 0) return -1;
-		return currentTurnIndex === -1 ? 0 : currentTurnIndex;
-	}, [combatOrder, currentTurnIndex]);
+        const highlightedIndex = useMemo(() => {
+                if (combatOrder.length === 0) return -1;
+                return currentTurnIndex === -1 ? 0 : currentTurnIndex;
+        }, [combatOrder, currentTurnIndex]);
 
-	const hasDndBeyondMembers = useMemo(
-		() => partyMembers.some((member) => member.source === "dndbeyond"),
-		[partyMembers]
-	);
+        useEffect(() => {
+                if (combatOrder.length === 0) {
+                        setRoundCounter(1);
+                        setConcentrationReminder(null);
+                }
+        }, [combatOrder]);
+
+        const hasDndBeyondMembers = useMemo(
+                () => partyMembers.some((member) => member.source === "dndbeyond"),
+                [partyMembers]
+        );
 
 	const monsterSearchTerm = monsterSearch.trim();
 	const shouldShowMonsterDropdown =
@@ -1313,11 +1446,17 @@ export default function Home() {
 						}
 						partyDamageInputs={partyDamageInputs}
 						applyManualPartyDamage={applyManualPartyDamage}
-						handleEnemyHitPointsChange={handleEnemyHitPointsChange}
-						handleEnemyDamageInputChange={handleEnemyDamageInputChange}
-						enemyDamageInputs={enemyDamageInputs}
-						applyEnemyDamage={applyEnemyDamage}
-					/>
+                                                handleEnemyHitPointsChange={handleEnemyHitPointsChange}
+                                                handleEnemyDamageInputChange={handleEnemyDamageInputChange}
+                                                enemyDamageInputs={enemyDamageInputs}
+                                                applyEnemyDamage={applyEnemyDamage}
+                                                combatStatuses={combatStatuses}
+                                                handleCombatStatusChange={handleCombatStatusChange}
+                                                handleCombatStatusDetailChange={handleCombatStatusDetailChange}
+                                                roundCounter={roundCounter}
+                                                concentrationReminder={concentrationReminder}
+                                                dismissConcentrationReminder={dismissConcentrationReminder}
+                                        />
 
 					<div className={styles.sectionColumns}>
 						<PartyMembers
