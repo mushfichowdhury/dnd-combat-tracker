@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 import styles from "@/styles/Home.module.css";
 import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 
@@ -26,43 +28,11 @@ const STATUS_LABELS = STATUS_OPTIONS.reduce((accumulator, option) => {
         return accumulator;
 }, {});
 
-const getStatusDetailLabel = (status) => {
-        if (status === "concentrating") {
-                return "Concentration Spell";
-        }
-
-        if (status === "custom") {
-                return "Custom Details";
-        }
-
-        if (status === "none") {
-                return "";
-        }
-
-        return "Notes";
-};
-
-const getStatusDetailPlaceholder = (status) => {
-        if (status === "concentrating") {
-                return "Spell name (e.g., Bless)";
-        }
-
-        if (status === "custom") {
-                return "Describe the effect";
-        }
-
-        if (status === "none") {
-                return "";
-        }
-
-        return "Add notes (optional)";
-};
-
 const CombatOrder = ({
         combatOrder,
         highlightedIndex,
         advanceTurn,
-	resetTurn,
+        resetTurn,
 	refreshDndBeyondHitPoints,
 	isRefreshingDndBeyondHp,
 	hasDndBeyondMembers,
@@ -71,17 +41,18 @@ const CombatOrder = ({
 	handleManualPartyDamageInputChange,
 	partyDamageInputs,
 	applyManualPartyDamage,
-	handleEnemyHitPointsChange,
+        handleEnemyHitPointsChange,
         handleEnemyDamageInputChange,
         enemyDamageInputs,
         applyEnemyDamage,
         combatStatuses,
         handleCombatStatusChange,
-        handleCombatStatusDetailChange,
         roundCounter,
         concentrationReminder,
         dismissConcentrationReminder,
 }) => {
+        const [statusEditState, setStatusEditState] = useState({});
+
         return (
                 <section className={styles.section}>
                         <h2>Combat Order</h2>
@@ -168,7 +139,9 @@ const CombatOrder = ({
                                                                 detail: "",
                                                         };
                                                 const statusValue = combatantStatus.status ?? "none";
-                                                const statusDetail = combatantStatus.detail ?? "";
+                                                const statusSelectId = `combatant-status-${combatant.id}`;
+                                                const isEditingStatus =
+                                                        statusValue === "none" || statusEditState[combatant.id];
 
                                                 let partyCurrentValue;
                                                 if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -329,6 +302,11 @@ const CombatOrder = ({
                                                                                         <span className={styles.tag}>
                                                                                                 {combatant.type === "party" ? "Party" : "Enemy"}
                                                                                         </span>
+                                                                                        {statusValue !== "none" ? (
+                                                                                                <span className={styles.statusBadge}>
+                                                                                                        {STATUS_LABELS[statusValue] || "Status"}
+                                                                                                </span>
+                                                                                        ) : null}
                                                                                 </h3>
                                                                                 <p className={styles.statLine}>
                                                                                         Initiative:{" "}
@@ -337,52 +315,53 @@ const CombatOrder = ({
                                                                                         </strong>
                                                                                 </p>
                                                                                 <div className={styles.statusSection}>
-                                                                                        <label className={styles.statusLabel}>
-                                                                                                <span className={styles.statusLabelText}>
-                                                                                                        Spell Concentration / Status
-                                                                                                </span>
-                                                                                                <select
-                                                                                                        className={styles.statusSelect}
-                                                                                                        value={statusValue}
-                                                                                                        onChange={(event) =>
-                                                                                                                handleCombatStatusChange(
-                                                                                                                        combatant.id,
-                                                                                                                        event.target.value
-                                                                                                                )
-                                                                                                        }>
-                                                                                                        {STATUS_OPTIONS.map((option) => (
-                                                                                                                <option key={option.value} value={option.value}>
-                                                                                                                        {option.label}
-                                                                                                                </option>
-                                                                                                        ))}
-                                                                                                </select>
-                                                                                        </label>
-                                                                                        {statusValue !== "none" ? (
-                                                                                                <div className={styles.statusDetailRow}>
-                                                                                                        <span className={styles.statusBadge}>
-                                                                                                                {STATUS_LABELS[statusValue] || "Status"}
-                                                                                                        </span>
-                                                                                                        <label className={styles.statusDetailLabel}>
-                                                                                                                <span className={styles.statusDetailLabelText}>
-                                                                                                                        {getStatusDetailLabel(statusValue)}
-                                                                                                                </span>
-                                                                                                                <input
-                                                                                                                        type='text'
-                                                                                                                        className={styles.statusDetailInput}
-                                                                                                                        value={statusDetail}
-                                                                                                                        onChange={(event) =>
-                                                                                                                                handleCombatStatusDetailChange(
-                                                                                                                                        combatant.id,
-                                                                                                                                        event.target.value
-                                                                                                                                )
-                                                                                                                        }
-                                                                                                                        placeholder={getStatusDetailPlaceholder(
-                                                                                                                                statusValue
-                                                                                                                        )}
-                                                                                                                />
+                                                                                        {isEditingStatus ? (
+                                                                                                <>
+                                                                                                        <label
+                                                                                                                htmlFor={statusSelectId}
+                                                                                                                className={styles.statusLabelText}>
+                                                                                                                Spell Concentration / Status
                                                                                                         </label>
-                                                                                                </div>
-                                                                                        ) : null}
+                                                                                                        <select
+                                                                                                                id={statusSelectId}
+                                                                                                                className={styles.statusSelect}
+                                                                                                                value={statusValue}
+                                                                                                                onChange={(event) => {
+                                                                                                                        const nextValue = event.target.value;
+                                                                                                                        handleCombatStatusChange(
+                                                                                                                                combatant.id,
+                                                                                                                                nextValue
+                                                                                                                        );
+                                                                                                                        setStatusEditState((previous) => ({
+                                                                                                                                ...previous,
+                                                                                                                                [combatant.id]: nextValue === "none",
+                                                                                                                        }));
+                                                                                                                }}>
+                                                                                                                {STATUS_OPTIONS.map((option) => (
+                                                                                                                        <option key={option.value} value={option.value}>
+                                                                                                                                {option.label}
+                                                                                                                        </option>
+                                                                                                                ))}
+                                                                                                        </select>
+                                                                                                </>
+                                                                                        ) : (
+                                                                                                <>
+                                                                                                        <span className={styles.statusLabelText}>
+                                                                                                                Spell Concentration / Status
+                                                                                                        </span>
+                                                                                                        <button
+                                                                                                                type='button'
+                                                                                                                className={styles.changeStatusButton}
+                                                                                                                onClick={() =>
+                                                                                                                        setStatusEditState((previous) => ({
+                                                                                                                                ...previous,
+                                                                                                                                [combatant.id]: true,
+                                                                                                                        }))
+                                                                                                                }>
+                                                                                                                Change Status
+                                                                                                        </button>
+                                                                                                </>
+                                                                                        )}
                                                                                 </div>
                                                                         </div>
                                                                         {shouldRenderVitals && (

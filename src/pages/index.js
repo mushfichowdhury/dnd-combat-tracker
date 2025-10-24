@@ -479,27 +479,6 @@ export default function Home() {
                 });
         };
 
-        const handleCombatStatusDetailChange = (combatantId, detail) => {
-                setCombatStatuses((previousStatuses) => {
-                        const previousEntry = previousStatuses[combatantId] ?? {
-                                status: "none",
-                                detail: "",
-                        };
-
-                        if (previousEntry.detail === detail) {
-                                return previousStatuses;
-                        }
-
-                        return {
-                                ...previousStatuses,
-                                [combatantId]: {
-                                        ...previousEntry,
-                                        detail,
-                                },
-                        };
-                });
-        };
-
         const dismissConcentrationReminder = () => {
                 setConcentrationReminder(null);
         };
@@ -1480,7 +1459,6 @@ export default function Home() {
                                                 applyEnemyDamage={applyEnemyDamage}
                                                 combatStatuses={combatStatuses}
                                                 handleCombatStatusChange={handleCombatStatusChange}
-                                                handleCombatStatusDetailChange={handleCombatStatusDetailChange}
                                                 roundCounter={roundCounter}
                                                 concentrationReminder={concentrationReminder}
                                                 dismissConcentrationReminder={dismissConcentrationReminder}
