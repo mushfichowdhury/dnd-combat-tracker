@@ -3,6 +3,7 @@ import Head from "next/head";
 import styles from "@/styles/Home.module.css";
 import { ABILITY_SCORE_CONFIG } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
+import { EXHAUSTION_CONDITION_VALUE } from "@/lib/statusConditions";
 import CombatOrder from "@/components/CombatOrder";
 import PartyMembers from "@/components/PartyMembers";
 import Enemies from "@/components/Enemies";
@@ -318,16 +319,61 @@ const mapMonsterToEnemyForm = (
         };
 };
 
-const CONCENTRATION_STATUS_VALUES = new Set([
-        "concentrating",
-        "bless",
-        "bane",
-        "hex",
-        "huntersMark",
-        "faerieFire",
-        "shieldOfFaith",
-        "custom",
-]);
+const CONCENTRATION_STATUS_VALUES = new Set(["concentrating", "custom"]);
+
+const buildStatusFromCharacterConditions = (conditions) => {
+        if (!Array.isArray(conditions) || conditions.length === 0) {
+                return null;
+        }
+
+        const validConditions = conditions.filter(
+                (condition) =>
+                        condition && typeof condition.value === "string" && condition.value.trim().length > 0
+        );
+
+        if (validConditions.length === 0) {
+                return null;
+        }
+
+        const [primary, ...rest] = validConditions;
+
+        const detailParts = [];
+
+        if (
+                primary.value === EXHAUSTION_CONDITION_VALUE &&
+                Number.isFinite(primary.level) &&
+                primary.level >= 0
+        ) {
+                detailParts.push(`Level ${primary.level}`);
+        }
+
+        if (rest.length > 0) {
+                const restDescriptions = rest
+                        .map((condition) => {
+                                if (
+                                        condition.value === EXHAUSTION_CONDITION_VALUE &&
+                                        Number.isFinite(condition.level) &&
+                                        condition.level >= 0
+                                ) {
+                                        return `${condition.name} (Level ${condition.level})`;
+                                }
+
+                                return condition.name;
+                        })
+                        .filter((label) => typeof label === "string" && label.trim().length > 0);
+
+                if (restDescriptions.length > 0) {
+                        detailParts.push(restDescriptions.join(", "));
+                }
+        }
+
+        const detail = detailParts.join("; ");
+
+        return {
+                status: primary.value,
+                detail: detail || "",
+        };
+};
 
 export default function Home() {
         const [partyMembers, setPartyMembers] = useState([]);
@@ -652,15 +698,24 @@ export default function Home() {
 				return;
 			}
 
-			const newMember = createPartyMemberFromDndBeyond(data);
-			if (!newMember) {
-				throw new Error("The character response was missing required data.");
-			}
+                        const newMember = createPartyMemberFromDndBeyond(data);
+                        if (!newMember) {
+                                throw new Error("The character response was missing required data.");
+                        }
 
-			setPartyMembers((prev) => [...prev, newMember]);
+                        const importedStatus = buildStatusFromCharacterConditions(data.conditions);
 
-			setDndBeyondIdentifier("");
-			setDndBeyondNotice(`Imported ${data.name} from D&D Beyond.`);
+                        setPartyMembers((prev) => [...prev, newMember]);
+
+                        if (importedStatus) {
+                                setCombatStatuses((previous) => ({
+                                        ...previous,
+                                        [newMember.id]: importedStatus,
+                                }));
+                        }
+
+                        setDndBeyondIdentifier("");
+                        setDndBeyondNotice(`Imported ${data.name} from D&D Beyond.`);
 		} catch (error) {
 			console.error(error);
 			setDndBeyondError(
@@ -719,28 +774,40 @@ export default function Home() {
 					.map((member) => member.ddbCharacterId)
 			);
 
-			const newMembers = [];
-			const skipped = [];
+                        const newMembers = [];
+                        const statusUpdates = {};
+                        const skipped = [];
 
-			for (const character of data.characters) {
-				if (character?.id && existingIds.has(character.id)) {
-					skipped.push(character.name || character.id);
+                        for (const character of data.characters) {
+                                if (character?.id && existingIds.has(character.id)) {
+                                        skipped.push(character.name || character.id);
 					continue;
 				}
 
-				const newMember = createPartyMemberFromDndBeyond(character);
-				if (newMember) {
-					newMembers.push(newMember);
-					if (character?.id) {
-						existingIds.add(character.id);
-					}
-				}
-			}
+                                const newMember = createPartyMemberFromDndBeyond(character);
+                                if (newMember) {
+                                        newMembers.push(newMember);
+                                        if (character?.id) {
+                                                existingIds.add(character.id);
+                                        }
 
-			if (newMembers.length > 0) {
-				setPartyMembers((prev) => [...prev, ...newMembers]);
-				setDndBeyondIdentifier("");
-			}
+                                        const importedStatus = buildStatusFromCharacterConditions(character.conditions);
+                                        if (importedStatus) {
+                                                statusUpdates[newMember.id] = importedStatus;
+                                        }
+                                }
+                        }
+
+                        if (newMembers.length > 0) {
+                                setPartyMembers((prev) => [...prev, ...newMembers]);
+                                if (Object.keys(statusUpdates).length > 0) {
+                                        setCombatStatuses((previous) => ({
+                                                ...previous,
+                                                ...statusUpdates,
+                                        }));
+                                }
+                                setDndBeyondIdentifier("");
+                        }
 
 			if (newMembers.length === 0) {
 				if (skipped.length > 0) {
