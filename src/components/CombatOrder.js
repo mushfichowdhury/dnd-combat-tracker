@@ -66,17 +66,17 @@ const CombatOrder = ({
 					disabled={combatOrder.length === 0}>
 					Reset to Top
 				</button>
-				<button
-					type='button'
-					className={styles.secondaryButton}
-					onClick={refreshDndBeyondHitPoints}
-					disabled={
-						isRefreshingDndBeyondHp ||
-						!hasDndBeyondMembers ||
-						combatOrder.length === 0
-					}>
-					{isRefreshingDndBeyondHp ? "Refreshing HP..." : "Refresh HP"}
-				</button>
+                                <button
+                                        type='button'
+                                        className={styles.secondaryButton}
+                                        onClick={refreshDndBeyondHitPoints}
+                                        disabled={
+                                                isRefreshingDndBeyondHp ||
+                                                !hasDndBeyondMembers ||
+                                                combatOrder.length === 0
+                                        }>
+                                        {isRefreshingDndBeyondHp ? "Refreshing..." : "Refresh"}
+                                </button>
 			</div>
 			{concentrationReminder ? (
 				<div className={styles.concentrationReminder}>
