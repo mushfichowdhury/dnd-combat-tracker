@@ -1,8 +1,5 @@
 import styles from "@/styles/Home.module.css";
-import {
-	ENEMY_NOTE_PREVIEW_LENGTH,
-	formatInitiativeDisplay,
-} from "@/lib/combatFormatting";
+import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 
 const CombatOrder = ({
 	combatOrder,
@@ -13,9 +10,7 @@ const CombatOrder = ({
 	isRefreshingDndBeyondHp,
 	hasDndBeyondMembers,
 	dndBeyondRefreshError,
-	expandedEnemyNotes,
-	toggleEnemyNotesExpansion,
-	handleManualPartyHitPointsChange,
+        handleManualPartyHitPointsChange,
 	handleManualPartyDamageInputChange,
 	partyDamageInputs,
 	applyManualPartyDamage,
@@ -225,24 +220,9 @@ const CombatOrder = ({
 							showImportedPartyHitPoints ||
 							showManualPartyControls ||
 							showEnemyHitPoints;
-						const enemyNote =
-							combatant.type === "enemy" && typeof combatant.notes === "string"
-								? combatant.notes.trim()
-								: "";
-						const hasEnemyNote = enemyNote.length > 0;
-						const isEnemyNoteExpanded = Boolean(
-							expandedEnemyNotes[combatant.id]
-						);
-						const shouldTruncateEnemyNote =
-							hasEnemyNote && enemyNote.length > ENEMY_NOTE_PREVIEW_LENGTH;
-						const displayedEnemyNote =
-							isEnemyNoteExpanded || !shouldTruncateEnemyNote
-								? enemyNote
-								: `${enemyNote.slice(0, ENEMY_NOTE_PREVIEW_LENGTH).trimEnd()}…`;
-
-						return (
-							<li
-								key={combatant.id}
+                                                return (
+                                                        <li
+                                                                key={combatant.id}
 								className={`${styles.combatant} ${
 									index === highlightedIndex ? styles.activeCombatant : ""
 								}`}>
@@ -390,33 +370,9 @@ const CombatOrder = ({
 										</div>
 									)}
 								</div>
-								{combatant.type === "enemy" && (
-									<div className={styles.combatantDetails}>
-										{combatant.armorClass && (
-											<span>AC {combatant.armorClass}</span>
-										)}
-										{hasEnemyNote && (
-											<div className={styles.enemyNotes}>
-												<span className={styles.enemyNotesText}>
-													{displayedEnemyNote}
-												</span>
-												{shouldTruncateEnemyNote && (
-													<button
-														type='button'
-														className={styles.expandNotesButton}
-														onClick={() =>
-															toggleEnemyNotesExpansion(combatant.id)
-														}>
-														{isEnemyNoteExpanded ? "Show less" : "Read more"}
-													</button>
-												)}
-											</div>
-										)}
-									</div>
-								)}
-							</li>
-						);
-					})}
+                                                        </li>
+                                                );
+                                        })}
 				</ol>
 			)}
 		</section>
