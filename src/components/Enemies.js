@@ -1,7 +1,7 @@
 import styles from "@/styles/Home.module.css";
 import {
-        ABILITY_SCORE_CONFIG,
-        formatAbilityScoreDisplay,
+	ABILITY_SCORE_CONFIG,
+	formatAbilityScoreDisplay,
 } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
@@ -31,6 +31,113 @@ const Enemies = ({
 				Capture statblocks, attacks, and initiatives for the creatures your
 				party faces.
 			</p>
+			{enemies.length > 0 && (
+				<ul className={styles.cardList}>
+					{enemies.map((enemy) => {
+						const abilityScores =
+							enemy.abilityScores ?? enemy.ability_scores ?? {};
+						const hasAbilityScores = ABILITY_SCORE_CONFIG.some(({ key }) => {
+							const value = abilityScores?.[key];
+							if (typeof value === "string") {
+								return value.trim() !== "";
+							}
+							return value !== undefined && value !== null;
+						});
+						const actions = Array.isArray(enemy.actions) ? enemy.actions : [];
+						const formattedActions = actions
+							.map((action, index) => {
+								if (!action) {
+									return null;
+								}
+								const name =
+									typeof action.name === "string" ? action.name.trim() : "";
+								const description =
+									typeof action.description === "string"
+										? action.description.trim()
+										: "";
+								if (!name && !description) {
+									return null;
+								}
+								return {
+									key: `${enemy.id}-action-${index}`,
+									name,
+									description,
+								};
+							})
+							.filter(Boolean);
+						const speed =
+							typeof enemy.speed === "string" ? enemy.speed.trim() : "";
+						return (
+							<li key={enemy.id} className={styles.card}>
+								<div className={styles.cardHeader}>
+									<h3>{enemy.name}</h3>
+									<p className={styles.statLine}>
+										Initiative: <strong>{enemy.initiative}</strong>
+									</p>
+								</div>
+								<div className={styles.statBlock}>
+									{enemy.armorClass && (
+										<p>
+											<span>AC:</span> {enemy.armorClass}
+										</p>
+									)}
+									{enemy.hitPoints && (
+										<p>
+											<span>HP:</span> {enemy.hitPoints}
+										</p>
+									)}
+									{speed && (
+										<p>
+											<span>Speed:</span> {speed}
+										</p>
+									)}
+									{hasAbilityScores && (
+										<div>
+											<span>Ability Scores</span>
+											<div className={styles.abilityScoreList}>
+												{ABILITY_SCORE_CONFIG.map(({ key, label }) => {
+													const formattedScore = formatAbilityScoreDisplay(
+														abilityScores?.[key]
+													);
+													return (
+														<div
+															key={`${enemy.id}-${key}`}
+															className={styles.abilityScoreListItem}>
+															<span>{label}</span>
+															<strong>{formattedScore ?? "--"}</strong>
+														</div>
+													);
+												})}
+											</div>
+										</div>
+									)}
+									{formattedActions.length > 0 && (
+										<div className={styles.attackList}>
+											<h4>Actions</h4>
+											<ul>
+												{formattedActions.map((action) => (
+													<li key={action.key}>
+														{action.name && <strong>{action.name}</strong>}
+														{action.description && <p>{action.description}</p>}
+													</li>
+												))}
+											</ul>
+										</div>
+									)}
+									{enemy.notes && <p className={styles.notes}>{enemy.notes}</p>}
+								</div>
+								<button
+									type='button'
+									className={styles.removeButton}
+									onClick={() => removeEnemy(enemy.id)}>
+									Remove
+								</button>
+							</li>
+						);
+					})}
+				</ul>
+			)}
+			{enemies.length > 0 ? <hr className={styles.lineBreak} /> : <></>}
 			<form onSubmit={handleEnemySubmit} className={styles.form}>
 				<div className={styles.monsterSearchContainer}>
 					<label className={styles.inputGroup}>
@@ -130,26 +237,26 @@ const Enemies = ({
 					</label>
 					<label className={styles.inputGroup}>
 						<span>Initiative</span>
-                                                <input
-                                                        type='number'
-                                                        inputMode='numeric'
-                                                        value={enemyForm.initiative}
-                                                        onChange={(event) => {
-                                                                const { value } = event.target;
+						<input
+							type='number'
+							inputMode='numeric'
+							value={enemyForm.initiative}
+							onChange={(event) => {
+								const { value } = event.target;
 
-                                                                if (!isValidInitiativeInput(value)) {
-                                                                        return;
-                                                                }
+								if (!isValidInitiativeInput(value)) {
+									return;
+								}
 
-                                                                setEnemyForm((prev) => ({
-                                                                        ...prev,
-                                                                        initiative: value,
-                                                                }));
-                                                        }}
-                                                        placeholder='e.g. 14'
-                                                        required
-                                                />
-                                        </label>
+								setEnemyForm((prev) => ({
+									...prev,
+									initiative: value,
+								}));
+							}}
+							placeholder='e.g. 14'
+							required
+						/>
+					</label>
 					<label className={styles.inputGroup}>
 						<span>Armor Class</span>
 						<input
@@ -292,113 +399,6 @@ const Enemies = ({
 					Add Enemy
 				</button>
 			</form>
-
-			{enemies.length > 0 && (
-				<ul className={styles.cardList}>
-					{enemies.map((enemy) => {
-						const abilityScores =
-							enemy.abilityScores ?? enemy.ability_scores ?? {};
-						const hasAbilityScores = ABILITY_SCORE_CONFIG.some(({ key }) => {
-							const value = abilityScores?.[key];
-							if (typeof value === "string") {
-								return value.trim() !== "";
-							}
-							return value !== undefined && value !== null;
-						});
-						const actions = Array.isArray(enemy.actions) ? enemy.actions : [];
-						const formattedActions = actions
-							.map((action, index) => {
-								if (!action) {
-									return null;
-								}
-								const name =
-									typeof action.name === "string" ? action.name.trim() : "";
-								const description =
-									typeof action.description === "string"
-										? action.description.trim()
-										: "";
-								if (!name && !description) {
-									return null;
-								}
-								return {
-									key: `${enemy.id}-action-${index}`,
-									name,
-									description,
-								};
-							})
-							.filter(Boolean);
-						const speed =
-							typeof enemy.speed === "string" ? enemy.speed.trim() : "";
-						return (
-							<li key={enemy.id} className={styles.card}>
-								<div className={styles.cardHeader}>
-									<h3>{enemy.name}</h3>
-									<p className={styles.statLine}>
-										Initiative: <strong>{enemy.initiative}</strong>
-									</p>
-								</div>
-								<div className={styles.statBlock}>
-									{enemy.armorClass && (
-										<p>
-											<span>AC:</span> {enemy.armorClass}
-										</p>
-									)}
-									{enemy.hitPoints && (
-										<p>
-											<span>HP:</span> {enemy.hitPoints}
-										</p>
-									)}
-									{speed && (
-										<p>
-											<span>Speed:</span> {speed}
-										</p>
-									)}
-									{hasAbilityScores && (
-										<div>
-											<span>Ability Scores</span>
-											<div className={styles.abilityScoreList}>
-												{ABILITY_SCORE_CONFIG.map(({ key, label }) => {
-													const formattedScore = formatAbilityScoreDisplay(
-														abilityScores?.[key]
-													);
-													return (
-														<div
-															key={`${enemy.id}-${key}`}
-															className={styles.abilityScoreListItem}>
-															<span>{label}</span>
-															<strong>{formattedScore ?? "--"}</strong>
-														</div>
-													);
-												})}
-											</div>
-										</div>
-									)}
-									{formattedActions.length > 0 && (
-										<div className={styles.attackList}>
-											<h4>Actions</h4>
-											<ul>
-												{formattedActions.map((action) => (
-													<li key={action.key}>
-														{action.name && <strong>{action.name}</strong>}
-														{action.description && <p>{action.description}</p>}
-													</li>
-												))}
-											</ul>
-										</div>
-									)}
-									{enemy.notes && <p className={styles.notes}>{enemy.notes}</p>}
-								</div>
-								<button
-									type='button'
-									className={styles.removeButton}
-									onClick={() => removeEnemy(enemy.id)}>
-									Remove
-								</button>
-							</li>
-						);
-					})}
-				</ul>
-			)}
 		</section>
 	);
 };

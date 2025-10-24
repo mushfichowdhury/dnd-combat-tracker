@@ -630,56 +630,57 @@
 }
 
 .combatControls {
-        display: flex;
-        gap: 12px;
+	display: flex;
+	gap: 12px;
 }
 
 .roundTracker {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-weight: 600;
-        color: #e0b970;
-        background: rgba(224, 185, 112, 0.12);
-        border: 1px solid rgba(224, 185, 112, 0.25);
-        border-radius: 12px;
-        padding: 6px 12px;
-        width: fit-content;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-weight: 600;
+	color: #e0b970;
+	background: rgba(224, 185, 112, 0.12);
+	border: 1px solid rgba(224, 185, 112, 0.25);
+	border-radius: 12px;
+	padding: 6px 12px;
+	width: fit-content;
 }
 
 .concentrationReminder {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        background: rgba(212, 163, 115, 0.12);
-        border: 1px solid rgba(224, 185, 112, 0.4);
-        border-radius: 14px;
-        padding: 12px 16px;
-        color: #f6efe3;
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 16px;
+	background: rgba(212, 163, 115, 0.12);
+	border: 1px solid rgba(224, 185, 112, 0.4);
+	border-radius: 14px;
+	padding: 12px 16px;
+	color: #f6efe3;
 }
 
 .concentrationReminderContent {
-        line-height: 1.4;
+	line-height: 1.4;
 }
 
 .reminderDismiss {
-        border: 1px solid rgba(224, 185, 112, 0.4);
-        border-radius: 10px;
-        background: rgba(224, 185, 112, 0.16);
-        color: #e0b970;
-        font-weight: 600;
-        padding: 6px 12px;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+	border: 1px solid rgba(224, 185, 112, 0.4);
+	border-radius: 10px;
+	background: rgba(224, 185, 112, 0.16);
+	color: #e0b970;
+	font-weight: 600;
+	padding: 6px 12px;
+	cursor: pointer;
+	transition: border-color 0.2s ease, background-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 .reminderDismiss:hover,
 .reminderDismiss:focus-visible {
-        border-color: #d4a373;
-        background: rgba(224, 185, 112, 0.28);
-        transform: translateY(-1px);
-        outline: none;
+	border-color: #d4a373;
+	background: rgba(224, 185, 112, 0.28);
+	transform: translateY(-1px);
+	outline: none;
 }
 
 .emptyState {
@@ -715,82 +716,82 @@
 }
 
 .combatantInfo {
-        flex: 1 1 auto;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
 }
 
 .statusSection {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        align-items: flex-start;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
 }
 
 .statusLabelText {
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-weight: 600;
-        font-size: 0.75rem;
-        color: rgba(246, 239, 227, 0.7);
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	font-weight: 600;
+	font-size: 0.75rem;
+	color: rgba(246, 239, 227, 0.7);
 }
 
 .statusSelect {
-        border: 1px solid rgba(224, 185, 112, 0.3);
-        border-radius: 10px;
-        background: rgba(36, 25, 16, 0.55);
-        color: #f6efe3;
-        padding: 6px 12px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        outline: none;
-        transition: border-color 0.2s ease, transform 0.2s ease;
-        min-width: 160px;
-        max-width: 200px;
+	border: 1px solid rgba(224, 185, 112, 0.3);
+	border-radius: 10px;
+	background: rgba(36, 25, 16, 0.55);
+	color: #f6efe3;
+	padding: 6px 12px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	outline: none;
+	transition: border-color 0.2s ease, transform 0.2s ease;
+	min-width: 160px;
+	max-width: 200px;
 }
 
 .statusSelect:focus {
-        border-color: #d4a373;
-        transform: translateY(-1px);
+	border-color: #d4a373;
+	transform: translateY(-1px);
 }
 
 .statusBadge {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #e0b970;
-        background: rgba(224, 185, 112, 0.18);
-        border: 1px solid rgba(224, 185, 112, 0.3);
-        border-radius: 999px;
-        padding: 4px 10px;
-        white-space: nowrap;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 0.7rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	color: #e0b970;
+	background: rgba(224, 185, 112, 0.18);
+	border: 1px solid rgba(224, 185, 112, 0.3);
+	border-radius: 999px;
+	padding: 4px 10px;
+	white-space: nowrap;
 }
 
 .changeStatusButton {
-        border: 1px solid rgba(224, 185, 112, 0.35);
-        border-radius: 8px;
-        background: rgba(212, 163, 115, 0.12);
-        color: #e0b970;
-        font-size: 0.8rem;
-        font-weight: 600;
-        padding: 6px 12px;
-        cursor: pointer;
-        transition: border-color 0.2s ease, background-color 0.2s ease,
-                transform 0.2s ease;
+	border: 1px solid rgba(224, 185, 112, 0.35);
+	border-radius: 8px;
+	background: rgba(212, 163, 115, 0.12);
+	color: #e0b970;
+	font-size: 0.8rem;
+	font-weight: 600;
+	padding: 6px 12px;
+	cursor: pointer;
+	transition: border-color 0.2s ease, background-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 .changeStatusButton:hover,
 .changeStatusButton:focus-visible {
-        border-color: #d4a373;
-        background: rgba(212, 163, 115, 0.22);
-        transform: translateY(-1px);
-        outline: none;
+	border-color: #d4a373;
+	background: rgba(212, 163, 115, 0.22);
+	transform: translateY(-1px);
+	outline: none;
 }
 
 .combatantVitals {
@@ -954,101 +955,101 @@
 }
 
 @media (max-width: 768px) {
-        .page {
-                padding: 16px;
-        }
+	.page {
+		padding: 16px;
+	}
 
-        .main {
-                padding: 32px 18px;
-                gap: 36px;
-        }
+	.main {
+		padding: 32px 18px;
+		gap: 36px;
+	}
 
-        .section {
-                padding: 20px;
-        }
+	.section {
+		padding: 20px;
+	}
 
-        .sectionColumns {
-                grid-template-columns: 1fr;
-                gap: 24px;
-        }
+	.sectionColumns {
+		grid-template-columns: 1fr;
+		gap: 24px;
+	}
 
-        .combatControls {
-                flex-direction: column;
-                align-items: stretch;
-        }
+	.combatControls {
+		flex-direction: column;
+		align-items: stretch;
+	}
 
-        .primaryButton,
-        .secondaryButton {
-                width: 100%;
-        }
+	.primaryButton,
+	.secondaryButton {
+		width: 100%;
+	}
 
-        .combatantContent {
-                flex-direction: column;
-                align-items: stretch;
-                gap: 12px;
-        }
+	.combatantContent {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 12px;
+	}
 
-        .combatant h3 {
-                flex-wrap: wrap;
-                gap: 6px;
-        }
+	.combatant h3 {
+		flex-wrap: wrap;
+		gap: 6px;
+	}
 
-        .combatantMeta {
-                align-items: flex-start;
-        }
+	.combatantMeta {
+		align-items: flex-start;
+	}
 
-        .currentHp {
-                flex-wrap: wrap;
-                justify-content: space-between;
-                gap: 10px;
-                width: 100%;
-        }
+	.currentHp {
+		flex-wrap: wrap;
+		justify-content: space-between;
+		gap: 10px;
+		width: 100%;
+	}
 
-        .combatantVitals {
-                width: 100%;
-                align-items: stretch;
-                align-self: stretch;
-                gap: 12px;
-        }
+	.combatantVitals {
+		width: 100%;
+		align-items: stretch;
+		align-self: stretch;
+		gap: 12px;
+	}
 
-        .currentHpValue {
-                font-size: 1.4rem;
-        }
+	.currentHpValue {
+		font-size: 1.4rem;
+	}
 
-        .currentHpMax {
-                font-size: 0.85rem;
-        }
+	.currentHpMax {
+		font-size: 0.85rem;
+	}
 
-        .tempHpNote {
-                align-self: flex-start;
-        }
+	.tempHpNote {
+		align-self: flex-start;
+	}
 
-        .enemyDamageForm {
-                width: 100%;
-        }
+	.enemyDamageForm {
+		width: 100%;
+	}
 
-        .enemyHpInput {
-                width: 100%;
-                text-align: right;
-                flex: 1;
-                min-width: 0;
-        }
+	.enemyHpInput {
+		width: 100%;
+		text-align: right;
+		flex: 1;
+		min-width: 0;
+	}
 
-        .enemyDamageInput {
-                flex: 1;
-                min-width: 0;
-        }
+	.enemyDamageInput {
+		flex: 1;
+		min-width: 0;
+	}
 }
 
 @media (max-width: 768px) {
-        .concentrationReminder {
-                flex-direction: column;
-                align-items: flex-start;
-        }
+	.concentrationReminder {
+		flex-direction: column;
+		align-items: flex-start;
+	}
 
-        .combatControls {
-                flex-wrap: wrap;
-        }
+	.combatControls {
+		flex-wrap: wrap;
+	}
 }
 
 @media (prefers-color-scheme: light) {
@@ -1124,65 +1125,70 @@
 		color: #7c3f1e;
 	}
 
-        .enemyDamageInput {
-                background: rgba(255, 252, 245, 0.85);
-                color: #3a2a1a;
-                border-color: rgba(141, 109, 60, 0.35);
-        }
+	.enemyDamageInput {
+		background: rgba(255, 252, 245, 0.85);
+		color: #3a2a1a;
+		border-color: rgba(141, 109, 60, 0.35);
+	}
 
-        .enemyDamageInput:focus {
-                border-color: rgba(141, 109, 60, 0.55);
-        }
+	.enemyDamageInput:focus {
+		border-color: rgba(141, 109, 60, 0.55);
+	}
 
-        .enemyDamageButton {
-                border-color: rgba(141, 109, 60, 0.35);
-                background: rgba(212, 163, 115, 0.18);
-                color: #7c3f1e;
-        }
+	.enemyDamageButton {
+		border-color: rgba(141, 109, 60, 0.35);
+		background: rgba(212, 163, 115, 0.18);
+		color: #7c3f1e;
+	}
 
-        .enemyDamageButton:hover,
-        .enemyDamageButton:focus-visible {
-                border-color: rgba(141, 109, 60, 0.55);
-                background: rgba(212, 163, 115, 0.28);
-        }
+	.enemyDamageButton:hover,
+	.enemyDamageButton:focus-visible {
+		border-color: rgba(141, 109, 60, 0.55);
+		background: rgba(212, 163, 115, 0.28);
+	}
 
-        .roundTracker {
-                color: #7c3f1e;
-                background: rgba(182, 92, 44, 0.12);
-                border-color: rgba(182, 92, 44, 0.25);
-        }
+	.roundTracker {
+		color: #7c3f1e;
+		background: rgba(182, 92, 44, 0.12);
+		border-color: rgba(182, 92, 44, 0.25);
+	}
 
-        .concentrationReminder {
-                background: rgba(212, 163, 115, 0.18);
-                border-color: rgba(182, 92, 44, 0.3);
-                color: #3a2a1a;
-        }
+	.concentrationReminder {
+		background: rgba(212, 163, 115, 0.18);
+		border-color: rgba(182, 92, 44, 0.3);
+		color: #3a2a1a;
+	}
 
-        .reminderDismiss {
-                border-color: rgba(182, 92, 44, 0.35);
-                background: rgba(212, 163, 115, 0.2);
-                color: #7c3f1e;
-        }
+	.reminderDismiss {
+		border-color: rgba(182, 92, 44, 0.35);
+		background: rgba(212, 163, 115, 0.2);
+		color: #7c3f1e;
+	}
 
-        .reminderDismiss:hover,
-        .reminderDismiss:focus-visible {
-                border-color: rgba(182, 92, 44, 0.55);
-                background: rgba(212, 163, 115, 0.32);
-        }
+	.reminderDismiss:hover,
+	.reminderDismiss:focus-visible {
+		border-color: rgba(182, 92, 44, 0.55);
+		background: rgba(212, 163, 115, 0.32);
+	}
 
-        .statusSelect {
-                background: rgba(255, 252, 245, 0.9);
-                color: #3a2a1a;
-                border-color: rgba(141, 109, 60, 0.35);
-        }
+	.statusSelect {
+		background: rgba(255, 252, 245, 0.9);
+		color: #3a2a1a;
+		border-color: rgba(141, 109, 60, 0.35);
+	}
 
-        .statusSelect:focus {
-                border-color: rgba(141, 109, 60, 0.55);
-        }
+	.statusSelect:focus {
+		border-color: rgba(141, 109, 60, 0.55);
+	}
 
-        .statusBadge {
-                color: #7c3f1e;
-                background: rgba(182, 92, 44, 0.16);
-                border-color: rgba(182, 92, 44, 0.35);
-        }
+	.statusBadge {
+		color: #7c3f1e;
+		background: rgba(182, 92, 44, 0.16);
+		border-color: rgba(182, 92, 44, 0.35);
+	}
+}
+
+.lineBreak {
+	border: 0;
+	border-top: 2px solid #d6c3a1;
 }

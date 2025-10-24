@@ -4,69 +4,69 @@ import styles from "@/styles/Home.module.css";
 import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 
 const STATUS_OPTIONS = [
-        { value: "none", label: "None" },
-        { value: "concentrating", label: "Concentrating" },
-        { value: "bless", label: "Bless" },
-        { value: "bane", label: "Bane" },
-        { value: "hex", label: "Hex" },
-        { value: "huntersMark", label: "Hunter's Mark" },
-        { value: "faerieFire", label: "Faerie Fire" },
-        { value: "inspired", label: "Bardic Inspiration" },
-        { value: "shieldOfFaith", label: "Shield of Faith" },
-        { value: "stunned", label: "Stunned" },
-        { value: "paralyzed", label: "Paralyzed" },
-        { value: "prone", label: "Prone" },
-        { value: "restrained", label: "Restrained" },
-        { value: "grappled", label: "Grappled" },
-        { value: "poisoned", label: "Poisoned" },
-        { value: "blinded", label: "Blinded" },
-        { value: "custom", label: "Custom" },
+	{ value: "none", label: "Status / Concentration" },
+	{ value: "concentrating", label: "Concentrating" },
+	{ value: "bless", label: "Bless" },
+	{ value: "bane", label: "Bane" },
+	{ value: "hex", label: "Hex" },
+	{ value: "huntersMark", label: "Hunter's Mark" },
+	{ value: "faerieFire", label: "Faerie Fire" },
+	{ value: "inspired", label: "Bardic Inspiration" },
+	{ value: "shieldOfFaith", label: "Shield of Faith" },
+	{ value: "stunned", label: "Stunned" },
+	{ value: "paralyzed", label: "Paralyzed" },
+	{ value: "prone", label: "Prone" },
+	{ value: "restrained", label: "Restrained" },
+	{ value: "grappled", label: "Grappled" },
+	{ value: "poisoned", label: "Poisoned" },
+	{ value: "blinded", label: "Blinded" },
+	{ value: "custom", label: "Custom" },
 ];
 
 const STATUS_LABELS = STATUS_OPTIONS.reduce((accumulator, option) => {
-        accumulator[option.value] = option.label;
-        return accumulator;
+	accumulator[option.value] = option.label;
+	return accumulator;
 }, {});
 
 const CombatOrder = ({
-        combatOrder,
-        highlightedIndex,
-        advanceTurn,
-        resetTurn,
+	combatOrder,
+	highlightedIndex,
+	advanceTurn,
+	resetTurn,
 	refreshDndBeyondHitPoints,
 	isRefreshingDndBeyondHp,
 	hasDndBeyondMembers,
 	dndBeyondRefreshError,
-        handleManualPartyHitPointsChange,
+	handleManualPartyHitPointsChange,
 	handleManualPartyDamageInputChange,
 	partyDamageInputs,
 	applyManualPartyDamage,
-        handleEnemyHitPointsChange,
-        handleEnemyDamageInputChange,
-        enemyDamageInputs,
-        applyEnemyDamage,
-        combatStatuses,
-        handleCombatStatusChange,
-        roundCounter,
-        concentrationReminder,
-        dismissConcentrationReminder,
+	handleEnemyHitPointsChange,
+	handleEnemyDamageInputChange,
+	enemyDamageInputs,
+	applyEnemyDamage,
+	combatStatuses,
+	handleCombatStatusChange,
+	roundCounter,
+	concentrationReminder,
+	dismissConcentrationReminder,
 }) => {
-        const [statusEditState, setStatusEditState] = useState({});
+	const [statusEditState, setStatusEditState] = useState({});
 
-        return (
-                <section className={styles.section}>
-                        <h2>Combat Order</h2>
-                        <p className={styles.sectionDescription}>
-                                Automatically sorted by initiative. Advance turns as combat progresses.
-                        </p>
-                        {combatOrder.length > 0 ? (
-                                <div className={styles.roundTracker}>Round {roundCounter}</div>
-                        ) : null}
-                        <div className={styles.combatControls}>
-                                <button
-                                        type='button'
-                                        className={styles.primaryButton}
-                                        onClick={advanceTurn}
+	return (
+		<section className={styles.section}>
+			<h2>Combat Order</h2>
+			<p className={styles.sectionDescription}>
+				Automatically sorted by initiative. Advance turns as combat progresses.
+			</p>
+			{combatOrder.length > 0 ? (
+				<div className={styles.roundTracker}>Round {roundCounter}</div>
+			) : null}
+			<div className={styles.combatControls}>
+				<button
+					type='button'
+					className={styles.primaryButton}
+					onClick={advanceTurn}
 					disabled={combatOrder.length === 0}>
 					Next Turn
 				</button>
@@ -87,66 +87,66 @@ const CombatOrder = ({
 						combatOrder.length === 0
 					}>
 					{isRefreshingDndBeyondHp ? "Refreshing HP..." : "Refresh HP"}
-                                </button>
-                        </div>
-                        {concentrationReminder ? (
-                                <div className={styles.concentrationReminder}>
-                                        <div className={styles.concentrationReminderContent}>
-                                                <strong>Round {concentrationReminder.round} complete.</strong>{" "}
-                                                Roll to maintain concentration for {" "}
-                                                {concentrationReminder.combatants
-                                                        .map((combatant) => {
-                                                                const label = STATUS_LABELS[combatant.status] || "Status";
-                                                                const detailText = combatant.detail
-                                                                        ? ` (${combatant.detail})`
-                                                                        : "";
-                                                                return `${combatant.name} – ${label}${detailText}`;
-                                                        })
-                                                        .join(", ")}.
-                                        </div>
-                                        <button
-                                                type='button'
-                                                className={styles.reminderDismiss}
-                                                onClick={dismissConcentrationReminder}>
-                                                Dismiss
-                                        </button>
-                                </div>
-                        ) : null}
-                        {dndBeyondRefreshError && (
-                                <p className={styles.errorMessage}>{dndBeyondRefreshError}</p>
-                        )}
-                        {combatOrder.length === 0 ? (
-                                <p className={styles.emptyState}>
+				</button>
+			</div>
+			{concentrationReminder ? (
+				<div className={styles.concentrationReminder}>
+					<div className={styles.concentrationReminderContent}>
+						<strong>Round {concentrationReminder.round} complete.</strong> Roll
+						to maintain concentration for{" "}
+						{concentrationReminder.combatants
+							.map((combatant) => {
+								const label = STATUS_LABELS[combatant.status] || "Status";
+								const detailText = combatant.detail
+									? ` (${combatant.detail})`
+									: "";
+								return `${combatant.name} – ${label}${detailText}`;
+							})
+							.join(", ")}
+						.
+					</div>
+					<button
+						type='button'
+						className={styles.reminderDismiss}
+						onClick={dismissConcentrationReminder}>
+						Dismiss
+					</button>
+				</div>
+			) : null}
+			{dndBeyondRefreshError && (
+				<p className={styles.errorMessage}>{dndBeyondRefreshError}</p>
+			)}
+			{combatOrder.length === 0 ? (
+				<p className={styles.emptyState}>
 					Add party members and enemies to build the initiative order.
 				</p>
 			) : (
 				<ol className={styles.combatList}>
 					{combatOrder.map((combatant, index) => {
 						const isPartyCombatant = combatant.type === "party";
-                                                const isImportedPartyCombatant =
-                                                        isPartyCombatant && combatant.source === "dndbeyond";
-                                                const showImportedPartyHitPoints =
-                                                        isImportedPartyCombatant && combatant.hitPoints;
-                                                const showManualPartyControls =
-                                                        isPartyCombatant && !isImportedPartyCombatant;
-                                                const showEnemyHitPoints = combatant.type === "enemy";
-                                                const partyHitPointsData = isPartyCombatant
-                                                        ? combatant.hitPoints
-                                                        : undefined;
-                                                const combatantStatus =
-                                                        combatStatuses?.[combatant.id] ?? {
-                                                                status: "none",
-                                                                detail: "",
-                                                        };
-                                                const statusValue = combatantStatus.status ?? "none";
-                                                const statusSelectId = `combatant-status-${combatant.id}`;
-                                                const isEditingStatus =
-                                                        statusValue === "none" || statusEditState[combatant.id];
+						const isImportedPartyCombatant =
+							isPartyCombatant && combatant.source === "dndbeyond";
+						const showImportedPartyHitPoints =
+							isImportedPartyCombatant && combatant.hitPoints;
+						const showManualPartyControls =
+							isPartyCombatant && !isImportedPartyCombatant;
+						const showEnemyHitPoints = combatant.type === "enemy";
+						const partyHitPointsData = isPartyCombatant
+							? combatant.hitPoints
+							: undefined;
+						const combatantStatus = combatStatuses?.[combatant.id] ?? {
+							status: "none",
+							detail: "",
+						};
+						const statusValue = combatantStatus.status ?? "none";
+						const statusSelectId = `combatant-status-${combatant.id}`;
+						const isEditingStatus =
+							statusValue === "none" || statusEditState[combatant.id];
 
-                                                let partyCurrentValue;
-                                                if (partyHitPointsData && typeof partyHitPointsData === "object") {
-                                                        if (
-                                                                partyHitPointsData.current !== undefined &&
+						let partyCurrentValue;
+						if (partyHitPointsData && typeof partyHitPointsData === "object") {
+							if (
+								partyHitPointsData.current !== undefined &&
 								partyHitPointsData.current !== null &&
 								partyHitPointsData.current !== ""
 							) {
@@ -289,85 +289,77 @@ const CombatOrder = ({
 							showImportedPartyHitPoints ||
 							showManualPartyControls ||
 							showEnemyHitPoints;
-                                                return (
-                                                        <li
-                                                                key={combatant.id}
+						return (
+							<li
+								key={combatant.id}
 								className={`${styles.combatant} ${
 									index === highlightedIndex ? styles.activeCombatant : ""
 								}`}>
-                                                                <div className={styles.combatantContent}>
-                                                                        <div className={styles.combatantInfo}>
-                                                                                <h3>
-                                                                                        {combatant.name}
-                                                                                        <span className={styles.tag}>
-                                                                                                {combatant.type === "party" ? "Party" : "Enemy"}
-                                                                                        </span>
-                                                                                        {statusValue !== "none" ? (
-                                                                                                <span className={styles.statusBadge}>
-                                                                                                        {STATUS_LABELS[statusValue] || "Status"}
-                                                                                                </span>
-                                                                                        ) : null}
-                                                                                </h3>
-                                                                                <p className={styles.statLine}>
-                                                                                        Initiative:{" "}
-                                                                                        <strong>
-                                                                                                {formatInitiativeDisplay(combatant.initiative)}
-                                                                                        </strong>
-                                                                                </p>
-                                                                                <div className={styles.statusSection}>
-                                                                                        {isEditingStatus ? (
-                                                                                                <>
-                                                                                                        <label
-                                                                                                                htmlFor={statusSelectId}
-                                                                                                                className={styles.statusLabelText}>
-                                                                                                                Spell Concentration / Status
-                                                                                                        </label>
-                                                                                                        <select
-                                                                                                                id={statusSelectId}
-                                                                                                                className={styles.statusSelect}
-                                                                                                                value={statusValue}
-                                                                                                                onChange={(event) => {
-                                                                                                                        const nextValue = event.target.value;
-                                                                                                                        handleCombatStatusChange(
-                                                                                                                                combatant.id,
-                                                                                                                                nextValue
-                                                                                                                        );
-                                                                                                                        setStatusEditState((previous) => ({
-                                                                                                                                ...previous,
-                                                                                                                                [combatant.id]: nextValue === "none",
-                                                                                                                        }));
-                                                                                                                }}>
-                                                                                                                {STATUS_OPTIONS.map((option) => (
-                                                                                                                        <option key={option.value} value={option.value}>
-                                                                                                                                {option.label}
-                                                                                                                        </option>
-                                                                                                                ))}
-                                                                                                        </select>
-                                                                                                </>
-                                                                                        ) : (
-                                                                                                <>
-                                                                                                        <span className={styles.statusLabelText}>
-                                                                                                                Spell Concentration / Status
-                                                                                                        </span>
-                                                                                                        <button
-                                                                                                                type='button'
-                                                                                                                className={styles.changeStatusButton}
-                                                                                                                onClick={() =>
-                                                                                                                        setStatusEditState((previous) => ({
-                                                                                                                                ...previous,
-                                                                                                                                [combatant.id]: true,
-                                                                                                                        }))
-                                                                                                                }>
-                                                                                                                Change Status
-                                                                                                        </button>
-                                                                                                </>
-                                                                                        )}
-                                                                                </div>
-                                                                        </div>
-                                                                        {shouldRenderVitals && (
-                                                                                <div className={styles.combatantVitals}>
-                                                                                        {showImportedPartyHitPoints ? (
-                                                                                                <>
+								<div className={styles.combatantContent}>
+									<div className={styles.combatantInfo}>
+										<h3>
+											{combatant.name}
+											<span className={styles.tag}>
+												{combatant.type === "party" ? "Party" : "Enemy"}
+											</span>
+											{statusValue !== "none" ? (
+												<span className={styles.statusBadge}>
+													{STATUS_LABELS[statusValue] || "Status"}
+												</span>
+											) : null}
+										</h3>
+										<p className={styles.statLine}>
+											Initiative:{" "}
+											<strong>
+												{formatInitiativeDisplay(combatant.initiative)}
+											</strong>
+										</p>
+										<div className={styles.statusSection}>
+											{isEditingStatus ? (
+												<>
+													<select
+														id={statusSelectId}
+														className={styles.statusSelect}
+														value={statusValue}
+														onChange={(event) => {
+															const nextValue = event.target.value;
+															handleCombatStatusChange(combatant.id, nextValue);
+															setStatusEditState((previous) => ({
+																...previous,
+																[combatant.id]: nextValue === "none",
+															}));
+														}}>
+														{STATUS_OPTIONS.map((option) => (
+															<option
+																key={option.value}
+																value={option.value}
+																placeholder='Status / Concentration'>
+																{option.label}
+															</option>
+														))}
+													</select>
+												</>
+											) : (
+												<>
+													<button
+														type='button'
+														className={styles.changeStatusButton}
+														onClick={() =>
+															setStatusEditState((previous) => ({
+																...previous,
+																[combatant.id]: true,
+															}))
+														}>
+														Change Status
+													</button>
+												</>
+											)}
+										</div>
+									</div>
+									{shouldRenderVitals && (
+										<div className={styles.combatantVitals}>
+											{showImportedPartyHitPoints ? (
+												<>
 													<div className={`${styles.currentHp}`}>
 														<span className={styles.currentHpLabel}>HP</span>
 														<span
@@ -493,9 +485,9 @@ const CombatOrder = ({
 										</div>
 									)}
 								</div>
-                                                        </li>
-                                                );
-                                        })}
+							</li>
+						);
+					})}
 				</ol>
 			)}
 		</section>
