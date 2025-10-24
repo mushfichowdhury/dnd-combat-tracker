@@ -2,26 +2,15 @@ import { useState } from "react";
 
 import styles from "@/styles/Home.module.css";
 import { formatInitiativeDisplay } from "@/lib/combatFormatting";
+import { STATUS_CONDITION_OPTIONS } from "@/lib/statusConditions";
 
-const STATUS_OPTIONS = [
-	{ value: "none", label: "Status / Concentration" },
-	{ value: "concentrating", label: "Concentrating" },
-	{ value: "bless", label: "Bless" },
-	{ value: "bane", label: "Bane" },
-	{ value: "hex", label: "Hex" },
-	{ value: "huntersMark", label: "Hunter's Mark" },
-	{ value: "faerieFire", label: "Faerie Fire" },
-	{ value: "inspired", label: "Bardic Inspiration" },
-	{ value: "shieldOfFaith", label: "Shield of Faith" },
-	{ value: "stunned", label: "Stunned" },
-	{ value: "paralyzed", label: "Paralyzed" },
-	{ value: "prone", label: "Prone" },
-	{ value: "restrained", label: "Restrained" },
-	{ value: "grappled", label: "Grappled" },
-	{ value: "poisoned", label: "Poisoned" },
-	{ value: "blinded", label: "Blinded" },
-	{ value: "custom", label: "Custom" },
+const BASE_STATUS_OPTIONS = [
+        { value: "none", label: "Status / Concentration" },
+        { value: "concentrating", label: "Concentrating" },
+        { value: "custom", label: "Custom" },
 ];
+
+const STATUS_OPTIONS = [...BASE_STATUS_OPTIONS, ...STATUS_CONDITION_OPTIONS];
 
 const STATUS_LABELS = STATUS_OPTIONS.reduce((accumulator, option) => {
 	accumulator[option.value] = option.label;
@@ -302,11 +291,14 @@ const CombatOrder = ({
 											<span className={styles.tag}>
 												{combatant.type === "party" ? "Party" : "Enemy"}
 											</span>
-											{statusValue !== "none" ? (
-												<span className={styles.statusBadge}>
-													{STATUS_LABELS[statusValue] || "Status"}
-												</span>
-											) : null}
+                                                                                        {statusValue !== "none" ? (
+                                                                                                <span className={styles.statusBadge}>
+                                                                                                        {STATUS_LABELS[statusValue] || "Status"}
+                                                                                                        {combatantStatus.detail
+                                                                                                                ? ` (${combatantStatus.detail})`
+                                                                                                                : ""}
+                                                                                                </span>
+                                                                                        ) : null}
 										</h3>
 										<p className={styles.statLine}>
 											Initiative:{" "}
