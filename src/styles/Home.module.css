@@ -377,23 +377,66 @@
 }
 
 .cardHeader {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+}
+
+.statSummary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        color: rgba(246, 239, 227, 0.85);
+}
+
+.statSummary span {
+        font-weight: 600;
+        color: #d4a373;
 }
 
 .statLine {
-	margin: 0;
-	color: rgba(246, 239, 227, 0.75);
-	font-size: 0.95rem;
-	margin-bottom: 4px;
+        margin: 0;
+        color: rgba(246, 239, 227, 0.75);
+        font-size: 0.95rem;
+        margin-bottom: 4px;
+}
+
+.enemyDetails {
+        margin-top: 12px;
+}
+
+.enemyDetails > summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #f2c57c;
+        list-style: none;
+        outline: none;
+}
+
+.enemyDetails[open] > summary {
+        margin-bottom: 12px;
+}
+
+.enemyDetails > summary::-webkit-details-marker {
+        display: none;
+}
+
+.enemyDetails > summary::before {
+        content: "▸";
+        display: inline-block;
+        margin-right: 8px;
+        transition: transform 0.2s ease;
+}
+
+.enemyDetails[open] > summary::before {
+        transform: rotate(90deg);
 }
 
 .statBlock {
-	grid-column: 1 / -1;
-	display: grid;
-	gap: 8px;
-	color: rgba(246, 239, 227, 0.85);
+        grid-column: 1 / -1;
+        display: grid;
+        gap: 8px;
+        color: rgba(246, 239, 227, 0.85);
 }
 
 .statBlock span {
