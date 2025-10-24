@@ -515,8 +515,8 @@
 }
 
 .removeButton {
-        justify-self: end;
-        background: transparent;
+	justify-self: end;
+	background: transparent;
 	border: 1px solid rgba(224, 141, 94, 0.6);
 	color: #e07a5f;
 	padding: 6px 14px;
@@ -660,9 +660,8 @@
 
 .statusSection {
 	display: flex;
-	flex-direction: column;
 	gap: 8px;
-	align-items: flex-start;
+	align-items: center;
 }
 
 .statusLabelText {
@@ -685,7 +684,6 @@
 	transition: border-color 0.2s ease, transform 0.2s ease;
 	min-width: 160px;
 	max-width: 200px;
-	margin-top: 8px;
 }
 
 .statusSelect:focus {
@@ -718,7 +716,6 @@
 	font-weight: 600;
 	padding: 6px 12px;
 	cursor: pointer;
-	margin-top: 8px;
 	transition: border-color 0.2s ease, background-color 0.2s ease,
 		transform 0.2s ease;
 }

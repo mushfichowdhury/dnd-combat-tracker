@@ -344,6 +344,7 @@ const CombatOrder = ({
 													}}
 												/>
 											</label>
+											<span>|</span>
 											{isImportedPartyCombatant ? null : isEditingStatus ? (
 												<>
 													<select

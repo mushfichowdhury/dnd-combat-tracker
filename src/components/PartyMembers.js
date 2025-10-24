@@ -1,91 +1,88 @@
 import styles from "@/styles/Home.module.css";
 import {
-        formatAbilityScoreDisplay,
-        formatInitiativeDisplay,
-        formatManualPartyHitPoints,
+	formatAbilityScoreDisplay,
+	formatInitiativeDisplay,
+	formatManualPartyHitPoints,
 } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
 const renderAbilityScores = (member) => {
-        if (
-                !member ||
-                !Array.isArray(member.abilityScores) ||
-                member.abilityScores.length === 0
-        ) {
-                return null;
-        }
+	if (
+		!member ||
+		!Array.isArray(member.abilityScores) ||
+		member.abilityScores.length === 0
+	) {
+		return null;
+	}
 
-        const items = member.abilityScores
-                .map((ability, index) => {
-                        const abilityName =
-                                typeof ability?.name === "string" && ability.name.trim()
-                                        ? ability.name.trim()
-                                        : "Ability";
+	const items = member.abilityScores
+		.map((ability, index) => {
+			const abilityName =
+				typeof ability?.name === "string" && ability.name.trim()
+					? ability.name.trim()
+					: "Ability";
 
-                        const rawScore =
-                                ability?.score ??
-                                ability?.total ??
-                                ability?.value ??
-                                ability?.base ??
-                                null;
+			const rawScore =
+				ability?.score ??
+				ability?.total ??
+				ability?.value ??
+				ability?.base ??
+				null;
 
-                        let formattedScore = formatAbilityScoreDisplay(rawScore);
+			let formattedScore = formatAbilityScoreDisplay(rawScore);
 
-                        if (
-                                !formattedScore &&
-                                typeof rawScore === "number" &&
-                                Number.isFinite(rawScore)
-                        ) {
-                                formattedScore = String(rawScore);
-                        }
+			if (
+				!formattedScore &&
+				typeof rawScore === "number" &&
+				Number.isFinite(rawScore)
+			) {
+				formattedScore = String(rawScore);
+			}
 
-                        if (!formattedScore && Number.isFinite(ability?.modifier)) {
-                                const sign = ability.modifier >= 0 ? "+" : "";
-                                formattedScore = `${sign}${ability.modifier}`;
-                        }
+			if (!formattedScore && Number.isFinite(ability?.modifier)) {
+				const sign = ability.modifier >= 0 ? "+" : "";
+				formattedScore = `${sign}${ability.modifier}`;
+			}
 
-                        if (!formattedScore && typeof rawScore === "string") {
-                                const trimmed = rawScore.trim();
+			if (!formattedScore && typeof rawScore === "string") {
+				const trimmed = rawScore.trim();
 
-                                if (trimmed) {
-                                        formattedScore = trimmed;
-                                }
-                        }
+				if (trimmed) {
+					formattedScore = trimmed;
+				}
+			}
 
-                        if (!formattedScore) {
-                                return null;
-                        }
+			if (!formattedScore) {
+				return null;
+			}
 
-                        return (
-                                <div
-                                        key={
-                                                ability?.id ??
-                                                `${member.id ?? "member"}-ability-${index}`
-                                        }
-                                        className={styles.abilityScoreListItem}>
-                                        <span>{abilityName}</span>
-                                        <strong>{formattedScore}</strong>
-                                </div>
-                        );
-                })
-                .filter(Boolean);
+			return (
+				<div
+					key={ability?.id ?? `${member.id ?? "member"}-ability-${index}`}
+					className={styles.abilityScoreListItem}>
+					<span>{abilityName}</span>
+					<strong>{formattedScore}</strong>
+				</div>
+			);
+		})
+		.filter(Boolean);
 
-        if (items.length === 0) {
-                return null;
-        }
+	if (items.length === 0) {
+		return null;
+	}
 
-        return (
-                <div>
-                        <span>Ability Scores</span>
-                        <div className={styles.abilityScoreList}>{items}</div>
-                </div>
-        );
+	return (
+		<div>
+			<span>Ability Scores</span>
+			<div className={styles.abilityScoreList}>{items}</div>
+		</div>
+	);
 };
 
 const PartyMembers = ({
-        partyMembers,
-        partyForm,
-        setPartyForm,
+	partyMembers,
+	partyForm,
+	setPartyForm,
 	handlePartySubmit,
 	handleDndBeyondImport,
 	handleDndBeyondCampaignImport,
@@ -105,96 +102,97 @@ const PartyMembers = ({
 			</p>
 			{partyMembers.length > 0 && (
 				<ul className={styles.cardList}>
-                                        {partyMembers.map((member) => {
-                                                const abilityScoresContent = renderAbilityScores(member);
+					{partyMembers.map((member) => {
+						const abilityScoresContent = renderAbilityScores(member);
 
-                                                return (
-                                                        <li key={member.id} className={styles.card}>
-                                                                <div>
-                                                                        <div className={styles.cardBrow}>
-                                                                                <div className={styles.cardBrow2}>
-                                                                                        <h3>{member.name}</h3>
-                                                                                </div>
-                                                                                <button
-                                                                                        type='button'
-                                                                                        className={styles.removeButton}
-                                                                                        onClick={() => removePartyMember(member.id)}>
-                                                                                        Remove
-                                                                                </button>
-                                                                        </div>
-                                                                        {member.classSummary && (
-                                                                                <p className={styles.statLine}>
-                                                                                        Class: <strong>{member.classSummary}</strong>
-                                                                                </p>
-                                                                        )}
-                                                                        {typeof member.level === "number" && member.level > 0 && (
-                                                                                <p className={styles.statLine}>
-                                                                                        Level: <strong>{member.level}</strong>
-                                                                                </p>
-                                                                        )}
-                                                                        {member.source === "dndbeyond" && (
-                                                                                <span className={styles.sourceTag}>D&amp;D Beyond</span>
-                                                                        )}
-                                                                        {member.playerName && (
-                                                                                <p className={styles.statLine}>
-                                                                                        Player: <strong>{member.playerName}</strong>
-                                                                                </p>
-                                                                        )}
-                                                                        {member.source !== "dndbeyond" && member.hitPoints && (
-                                                                                <p className={styles.statLine}>
-                                                                                        Hit Points:{" "}
-                                                                                        <strong>
-                                                                                                {formatManualPartyHitPoints(member.hitPoints)}
-                                                                                        </strong>
-                                                                                </p>
-                                                                        )}
-                                                                        {member.source === "dndbeyond" ? (
-                                                                                <label
-                                                                                        className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
-                                                                                        <input
-                                                                                                type='number'
-                                                                                                inputMode='numeric'
-                                                                                                className={styles.initiativeInput}
-                                                                                                value={member.initiative ?? ""}
-                                                                                                onChange={(event) => {
-                                                                                                        const { value } = event.target;
+						return (
+							<li key={member.id} className={styles.card}>
+								<div>
+									<div className={styles.cardBrow}>
+										<div className={styles.cardBrow2}>
+											<h3>{member.name}</h3>
+										</div>
+										<button
+											type='button'
+											className={styles.removeButton}
+											onClick={() => removePartyMember(member.id)}>
+											Remove
+										</button>
+									</div>
+									{member.classSummary && (
+										<p className={styles.statLine}>
+											Class: <strong>{member.classSummary}</strong>
+										</p>
+									)}
+									{typeof member.level === "number" && member.level > 0 && (
+										<p className={styles.statLine}>
+											Level: <strong>{member.level}</strong>
+										</p>
+									)}
+									{member.source === "dndbeyond" && (
+										<span className={styles.sourceTag}>D&amp;D Beyond</span>
+									)}
+									{member.playerName && (
+										<p className={styles.statLine}>
+											Player: <strong>{member.playerName}</strong>
+										</p>
+									)}
+									{member.source !== "dndbeyond" && member.hitPoints && (
+										<p className={styles.statLine}>
+											Hit Points:{" "}
+											<strong>
+												{formatManualPartyHitPoints(member.hitPoints)}
+											</strong>
+										</p>
+									)}
+									{member.source === "dndbeyond" ? (
+										<label
+											className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
+											<input
+												type='number'
+												inputMode='numeric'
+												className={styles.initiativeInput}
+												value={member.initiative ?? ""}
+												onChange={(event) => {
+													const { value } = event.target;
 
-                                                                                                        if (!isValidInitiativeInput(value)) {
-                                                                                                                return;
-                                                                                                        }
+													if (!isValidInitiativeInput(value)) {
+														return;
+													}
 
-                                                                                                        handleImportedInitiativeChange(member.id, value);
-                                                                                                }}
-                                                                                                placeholder='Enter initiative'
-                                                                                        />
-                                                                                </label>
-                                                                        ) : (
-                                                                                <p className={styles.statLine}>
-                                                                                        Initiative:{" "}
-                                                                                        <strong>
-                                                                                                {formatInitiativeDisplay(member.initiative)}
-                                                                                        </strong>
-                                                                                </p>
-                                                                        )}
-                                                                        {member.source === "dndbeyond" && abilityScoresContent && (
-                                                                                <details className={styles.enemyDetails}>
-                                                                                        <summary>View Stats</summary>
-                                                                                        <div className={styles.statBlock}>{abilityScoresContent}</div>
-                                                                                </details>
-                                                                        )}
-                                                                </div>
-                                                        </li>
-                                                );
-                                        })}
-                                </ul>
-                        )}
+													handleImportedInitiativeChange(member.id, value);
+												}}
+												placeholder='Enter initiative'
+											/>
+										</label>
+									) : (
+										<p className={styles.statLine}>
+											Initiative:{" "}
+											<strong>
+												{formatInitiativeDisplay(member.initiative)}
+											</strong>
+										</p>
+									)}
+									{member.source === "dndbeyond" && abilityScoresContent && (
+										<details className={styles.enemyDetails}>
+											<summary>View Stats</summary>
+											<div className={styles.statBlock}>
+												{abilityScoresContent}
+											</div>
+										</details>
+									)}
+								</div>
+							</li>
+						);
+					})}
+				</ul>
+			)}
 			{partyMembers.length > 0 ? <hr className={styles.lineBreak} /> : <></>}
 			<div className={styles.importBox}>
 				<h3>Import from D&amp;D Beyond</h3>
 				<p className={styles.helperText}>
-					Paste a shareable character link or ID or a campaign link to import
-					their stats and current hit points. Enter initiative manually after
-					importing.
+					Paste a shareable character link or ID to import their stats and
+					current hit points. Enter initiative manually after importing.
 				</p>
 				<form onSubmit={handleDndBeyondImport} className={styles.importForm}>
 					<label className={styles.inputGroup} style={{ width: "100%" }}>
@@ -218,13 +216,13 @@ const PartyMembers = ({
 							disabled={isImportingDndBeyond || !dndBeyondIdentifier.trim()}>
 							{isImportingDndBeyond ? "Importing..." : "Import Character"}
 						</button>
-						<button
+						{/* <button
 							type='button'
 							className={styles.secondaryButton}
 							onClick={handleDndBeyondCampaignImport}
 							disabled={isImportingDndBeyond || !dndBeyondIdentifier.trim()}>
 							{isImportingDndBeyond ? "Importing..." : "Import Campaign"}
-						</button>
+						</button> */}
 					</div>
 				</form>
 			</div>
