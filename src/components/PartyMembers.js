@@ -1,10 +1,23 @@
 import styles from "@/styles/Home.module.css";
 import {
+	ABILITY_SCORE_CONFIG,
 	formatAbilityScoreDisplay,
 	formatInitiativeDisplay,
 	formatManualPartyHitPoints,
 } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
+
+const ABILITY_LABEL_LOOKUP = ABILITY_SCORE_CONFIG.reduce(
+	(accumulator, { key, label }, index) => {
+		accumulator[key] = label;
+		accumulator[label.toLowerCase()] = label;
+		const abilityId = index + 1;
+		accumulator[abilityId] = label;
+		accumulator[String(abilityId)] = label;
+		return accumulator;
+	},
+	{}
+);
 
 const renderAbilityScores = (member) => {
 	if (
@@ -21,6 +34,15 @@ const renderAbilityScores = (member) => {
 				typeof ability?.name === "string" && ability.name.trim()
 					? ability.name.trim()
 					: "Ability";
+			const normalizedAbilityName = abilityName.toLowerCase();
+			const abilityKey =
+				typeof ability?.key === "string" && ability.key.trim()
+					? ability.key.trim().toLowerCase()
+					: null;
+			const abilityLabel =
+				ABILITY_LABEL_LOOKUP[abilityKey] ??
+				ABILITY_LABEL_LOOKUP[normalizedAbilityName] ??
+				abilityName;
 
 			const rawScore =
 				ability?.score ??
@@ -60,7 +82,7 @@ const renderAbilityScores = (member) => {
 				<div
 					key={ability?.id ?? `${member.id ?? "member"}-ability-${index}`}
 					className={styles.abilityScoreListItem}>
-					<span>{abilityName}</span>
+					<span>{abilityLabel}</span>
 					<strong>{formattedScore}</strong>
 				</div>
 			);

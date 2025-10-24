@@ -344,9 +344,9 @@ const CombatOrder = ({
 													}}
 												/>
 											</label>
-											<span>|</span>
 											{isImportedPartyCombatant ? null : isEditingStatus ? (
 												<>
+													<span>|</span>
 													<select
 														id={statusSelectId}
 														className={styles.statusSelect}
@@ -373,6 +373,7 @@ const CombatOrder = ({
 												</>
 											) : (
 												<>
+													<span>|</span>
 													<button
 														type='button'
 														className={styles.changeStatusButton}

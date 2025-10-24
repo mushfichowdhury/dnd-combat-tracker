@@ -19,7 +19,7 @@ export default async function handler(request, response) {
 
 	const searchParams = new URLSearchParams({
 		name__icontains: trimmedQuery,
-		limit: "10",
+		limit: "30",
 	});
 
 	const url = `https://api.open5e.com/monsters/?${searchParams.toString()}`;
