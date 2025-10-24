@@ -1,57 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# D&D Combat Tracker
 
-## Getting Started
+A web-based initiative and encounter tracker for tabletop RPG sessions built with the Next.js Pages Router. The app keeps the whole table on the same page by combining manual party management, automatic initiative ordering, and quick monster imports.
 
-First, run the development server:
+## Features
+
+- **Party roster management** – Add combatants manually or import full stat blocks from D&D Beyond characters and campaigns, including current hit points, class levels, and initiatives.【F:src/pages/index.js†L171-L318】【F:src/pages/api/import-dndbeyond-campaign.js†L1-L121】
+- **Monster lookup** – Search the Open5e API and map the returned armor class, HP, ability scores, actions, and speed directly into the encounter builder form.【F:src/pages/index.js†L229-L303】【F:src/pages/api/monsters.js†L1-L61】
+- **Turn tracking** – Sort party members and enemies into initiative order, highlight the active combatant, and update damage or healing as the fight progresses.【F:src/components/CombatOrder.js†L1-L196】【F:src/pages/index.js†L320-L639】
+- **Flexible notes and actions** – Store freeform notes, multi-step monster actions, and ability scores with sensible defaults for quick iteration mid-session.【F:src/components/Enemies.js†L1-L325】
+
+## Requirements
+
+- Node.js 18.17 or newer (matches the minimum supported by Next.js 16).【F:package.json†L1-L18】
+- npm 9+ (ships with recent Node releases).
+
+## Installation
+
+```bash
+npm install
+```
+
+## Local development
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The dev server runs on [http://localhost:3000](http://localhost:3000). API routes under `src/pages/api` are proxied through the same origin, so you can search Open5e or import from D&D Beyond without extra configuration.【F:src/pages/api/monsters.js†L1-L61】【F:src/pages/api/import-dndbeyond.js†L1-L52】
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+### Seeding an encounter
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+1. Add party members manually with name, initiative, and current/max HP.
+2. Paste a D&D Beyond character URL or numeric ID to import a hero sheet. Campaign imports pull every character in a linked game.
+3. Search for monsters by name (minimum two characters) to autofill armor class, hit points, speed, actions, and ability scores from Open5e.
+4. Add the enemy or ally to the battlefield and manage the turn order from the Combat Order panel.【F:src/pages/index.js†L229-L555】【F:src/components/CombatOrder.js†L1-L196】
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+## Available scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the Next.js dev server with Webpack (hot reloading).【F:package.json†L5-L13】 |
+| `npm run build` | Create an optimized production build. |
+| `npm run start` | Run the compiled production server. |
+| `npm run lint` | Execute ESLint using the repo configuration. |
 
-## Learn More
+## Project layout
 
-To learn more about Next.js, take a look at the following resources:
+- `src/pages/index.js` – Main combat tracker UI logic, including monster search and D&D Beyond import workflows.
+- `src/components/` – Presentational and form components for party members, enemies, and the combat order.
+- `src/lib/dndbeyond.js` – Helper utilities for parsing D&D Beyond identifiers, computing initiative, and normalizing character data.【F:src/lib/dndbeyond.js†L1-L200】
+- `public/` – Static assets served by Next.js.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+## External services
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Open5e** – Monster search results are fetched from `https://api.open5e.com/monsters/`. Respect their rate limits during play sessions.【F:src/pages/api/monsters.js†L1-L61】
+- **D&D Beyond** – Character and campaign data are fetched directly from the public JSON endpoints. Imports require no authentication but remain subject to D&D Beyond availability and terms of use.【F:src/lib/dndbeyond.js†L1-L200】【F:src/pages/api/import-dndbeyond.js†L1-L52】
 
-## Deploy on Vercel
+## Deployment
 
-This project is preconfigured for Vercel using the [`vercel.json`](./vercel.json) file in the repository root. To deploy:
+The repository ships with a `vercel.json` file configured for a Next.js Pages Router application. Deployments through the Vercel dashboard or CLI will automatically run `npm install`, `npm run build`, and host the production bundle.【F:vercel.json†L1-L14】
 
-1. Install the [Vercel CLI](https://vercel.com/docs/cli) and authenticate:
-
-   ```bash
-   npm install -g vercel
-   vercel login
-   ```
-
-2. From the project root, run an initial deployment. This creates the Vercel project and links it to your repository:
-
-   ```bash
-   vercel --prod
-   ```
-
-   When prompted, select the appropriate scope, project name, and confirm that the project should be linked. The provided defaults work for most setups because the CLI automatically reads the `vercel.json` configuration.
-
-3. For subsequent deployments, either push to the connected Git branch or run `vercel --prod` again. Vercel will install dependencies using `npm install`, build the app with `npm run build`, and host the production bundle.
-
-Consult the [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for additional customization options.
