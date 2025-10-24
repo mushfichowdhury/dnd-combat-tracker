@@ -326,7 +326,9 @@ const createEmptyCombatStatus = () => ({
         concentrationDetail: "",
 });
 
-const normalizeCombatStatusEntry = (input) => {
+const normalizeCombatStatusEntry = (input, options = {}) => {
+        const { applyLegacyCustomMapping = true } = options;
+
         if (!input || typeof input !== "object") {
                 return createEmptyCombatStatus();
         }
@@ -354,7 +356,12 @@ const normalizeCombatStatusEntry = (input) => {
                         ? input.concentrationDetail
                         : "";
 
-        if (!hasConcentration && (status === "concentrating" || status === "custom")) {
+        const shouldLegacyMapToConcentration =
+                !hasConcentration &&
+                (status === "concentrating" ||
+                        (applyLegacyCustomMapping && status === "custom"));
+
+        if (shouldLegacyMapToConcentration) {
                 concentration = true;
                 if (!concentrationDetail && detail) {
                         concentrationDetail = detail;
@@ -414,12 +421,15 @@ const mergeCombatStatusEntries = (previousEntry, updates) => {
                 nextConcentrationDetail = "";
         }
 
-        return normalizeCombatStatusEntry({
-                status: nextStatus,
-                detail: nextDetail,
-                concentration: nextConcentration,
-                concentrationDetail: nextConcentrationDetail,
-        });
+        return normalizeCombatStatusEntry(
+                {
+                        status: nextStatus,
+                        detail: nextDetail,
+                        concentration: nextConcentration,
+                        concentrationDetail: nextConcentrationDetail,
+                },
+                { applyLegacyCustomMapping: false }
+        );
 };
 
 const buildStatusFromCharacterConditions = (conditions) => {
@@ -472,10 +482,13 @@ const buildStatusFromCharacterConditions = (conditions) => {
 
         const detail = detailParts.join("; ");
 
-        return normalizeCombatStatusEntry({
-                status: primary.value,
-                detail: detail || "",
-        });
+        return normalizeCombatStatusEntry(
+                {
+                        status: primary.value,
+                        detail: detail || "",
+                },
+                { applyLegacyCustomMapping: false }
+        );
 };
 
 export default function Home() {
@@ -841,7 +854,10 @@ export default function Home() {
                         if (importedStatus) {
                                 setCombatStatuses((previous) => ({
                                         ...previous,
-                                        [newMember.id]: normalizeCombatStatusEntry(importedStatus),
+                                        [newMember.id]: normalizeCombatStatusEntry(
+                                                importedStatus,
+                                                { applyLegacyCustomMapping: false }
+                                        ),
                                 }));
                         }
 
@@ -927,7 +943,8 @@ export default function Home() {
 					);
                                         if (importedStatus) {
                                                 statusUpdates[newMember.id] = normalizeCombatStatusEntry(
-                                                        importedStatus
+                                                        importedStatus,
+                                                        { applyLegacyCustomMapping: false }
                                                 );
                                         }
                                 }
@@ -1504,7 +1521,8 @@ export default function Home() {
                                 updates.forEach(({ memberId, status }) => {
                                         if (status) {
                                                 nextStatuses[memberId] = normalizeCombatStatusEntry(
-                                                        status
+                                                        status,
+                                                        { applyLegacyCustomMapping: false }
                                                 );
                                         } else if (memberId in nextStatuses) {
                                                 delete nextStatuses[memberId];

@@ -4,21 +4,19 @@ import styles from "@/styles/Home.module.css";
 import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 import { STATUS_CONDITION_OPTIONS } from "@/lib/statusConditions";
 
-const BASE_STATUS_OPTIONS = [
-        { value: "none", label: "Status Condition" },
-        { value: "custom", label: "Custom" },
-];
+const BASE_STATUS_OPTIONS = [{ value: "none", label: "Status Condition" }];
 
 const STATUS_OPTIONS = [...BASE_STATUS_OPTIONS, ...STATUS_CONDITION_OPTIONS];
 
 const CONCENTRATION_BADGE_LABEL = "Concentration";
+const CUSTOM_STATUS_LABEL = "Custom";
 
 const STATUS_LABELS = STATUS_OPTIONS.reduce(
         (accumulator, option) => {
                 accumulator[option.value] = option.label;
                 return accumulator;
         },
-        { concentrating: CONCENTRATION_BADGE_LABEL }
+        { concentrating: CONCENTRATION_BADGE_LABEL, custom: CUSTOM_STATUS_LABEL }
 );
 
 const CombatOrder = ({
@@ -140,6 +138,16 @@ const CombatOrder = ({
                                                 const isConcentrating = Boolean(
                                                         combatantStatus.concentration
                                                 );
+                                                const statusOptions =
+                                                        statusValue === "custom"
+                                                                ? [
+                                                                          {
+                                                                                  value: "custom",
+                                                                                  label: CUSTOM_STATUS_LABEL,
+                                                                          },
+                                                                          ...STATUS_OPTIONS,
+                                                                  ]
+                                                                : STATUS_OPTIONS;
 
 						let partyCurrentValue;
 						if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -360,7 +368,7 @@ const CombatOrder = ({
                                                                                                                                 [combatant.id]: nextValue === "none",
                                                                                                                         }));
                                                                                                                 }}>
-                                                                                                                {STATUS_OPTIONS.map((option) => (
+                                                                                                                {statusOptions.map((option) => (
                                                                                                                         <option
                                                                                                                                 key={option.value}
                                                                                                                                 value={option.value}
