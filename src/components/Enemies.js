@@ -1,7 +1,7 @@
 import styles from "@/styles/Home.module.css";
 import {
-        ABILITY_SCORE_CONFIG,
-        formatAbilityScoreDisplay,
+	ABILITY_SCORE_CONFIG,
+	formatAbilityScoreDisplay,
 } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
@@ -67,114 +67,123 @@ const Enemies = ({
 							.filter(Boolean);
 						const speed =
 							typeof enemy.speed === "string" ? enemy.speed.trim() : "";
-                                                const armorClass = (() => {
-                                                        if (typeof enemy.armorClass === "string") {
-                                                                return enemy.armorClass.trim();
-                                                        }
+						const armorClass = (() => {
+							if (typeof enemy.armorClass === "string") {
+								return enemy.armorClass.trim();
+							}
 
-                                                        if (enemy.armorClass !== undefined && enemy.armorClass !== null) {
-                                                                return String(enemy.armorClass);
-                                                        }
+							if (enemy.armorClass !== undefined && enemy.armorClass !== null) {
+								return String(enemy.armorClass);
+							}
 
-                                                        return "";
-                                                })();
+							return "";
+						})();
 
-                                                const hitPoints = (() => {
-                                                        if (typeof enemy.hitPoints === "string") {
-                                                                return enemy.hitPoints.trim();
-                                                        }
+						const hitPoints = (() => {
+							if (typeof enemy.hitPoints === "string") {
+								return enemy.hitPoints.trim();
+							}
 
-                                                        if (enemy.hitPoints !== undefined && enemy.hitPoints !== null) {
-                                                                return String(enemy.hitPoints);
-                                                        }
+							if (enemy.hitPoints !== undefined && enemy.hitPoints !== null) {
+								return String(enemy.hitPoints);
+							}
 
-                                                        return "";
-                                                })();
+							return "";
+						})();
 
-                                                const hasSummaryStats = armorClass !== "" || hitPoints !== "";
-                                                const hasNotes =
-                                                        typeof enemy.notes === "string" ? enemy.notes.trim() !== "" : Boolean(enemy.notes);
-                                                const hasDetails = Boolean(
-                                                        speed ||
-                                                                hasAbilityScores ||
-                                                                formattedActions.length > 0 ||
-                                                                hasNotes
-                                                );
+						const hasSummaryStats = armorClass !== "" || hitPoints !== "";
+						const hasNotes =
+							typeof enemy.notes === "string"
+								? enemy.notes.trim() !== ""
+								: Boolean(enemy.notes);
+						const hasDetails = Boolean(
+							speed ||
+								hasAbilityScores ||
+								formattedActions.length > 0 ||
+								hasNotes
+						);
 
-                                                return (
-                                                        <li key={enemy.id} className={styles.card}>
-                                                                <div className={styles.cardHeader}>
-                                                                        <h3>{enemy.name}</h3>
-                                                                        <p className={styles.statLine}>
-                                                                                Initiative: <strong>{enemy.initiative}</strong>
-                                                                        </p>
-                                                                        {hasSummaryStats && (
-                                                                                <div className={styles.statSummary}>
-                                                                                        {armorClass && (
-                                                                                                <p>
-                                                                                                        <span>AC:</span> <strong>{armorClass}</strong>
-                                                                                                </p>
-                                                                                        )}
-                                                                                        {hitPoints && (
-                                                                                                <p>
-                                                                                                        <span>HP:</span> <strong>{hitPoints}</strong>
-                                                                                                </p>
-                                                                                        )}
-                                                                                </div>
-                                                                        )}
-                                                                </div>
-                                                                {hasDetails && (
-                                                                        <details className={styles.enemyDetails}>
-                                                                                <summary>View Details</summary>
-                                                                                <div className={styles.statBlock}>
-                                                                                        {speed && (
-                                                                                                <p>
-                                                                                                        <span>Speed:</span> {speed}
-                                                                                                </p>
-                                                                                        )}
-                                                                                        {hasAbilityScores && (
-                                                                                                <div>
-                                                                                                        <span>Ability Scores</span>
-                                                                                                        <div className={styles.abilityScoreList}>
-                                                                                                                {ABILITY_SCORE_CONFIG.map(({ key, label }) => {
-                                                                                                                        const formattedScore = formatAbilityScoreDisplay(
-                                                                                                                                abilityScores?.[key]
-                                                                                                                        );
-                                                                                                                        return (
-                                                                                                                                <div
-                                                                                                                                        key={`${enemy.id}-${key}`}
-                                                                                                                                        className={styles.abilityScoreListItem}>
-                                                                                                                                        <span>{label}</span>
-                                                                                                                                        <strong>{formattedScore ?? "--"}</strong>
-                                                                                                                                </div>
-                                                                                                                        );
-                                                                                                                })}
-                                                                                                        </div>
-                                                                                                </div>
-                                                                                        )}
-                                                                                        {formattedActions.length > 0 && (
-                                                                                                <div className={styles.attackList}>
-                                                                                                        <h4>Actions</h4>
-                                                                                                        <ul>
-                                                                                                                {formattedActions.map((action) => (
-                                                                                                                        <li key={action.key}>
-                                                                                                                                {action.name && <strong>{action.name}</strong>}
-                                                                                                                                {action.description && <p>{action.description}</p>}
-                                                                                                                        </li>
-                                                                                                                ))}
-                                                                                                        </ul>
-                                                                                                </div>
-                                                                                        )}
-                                                                                        {hasNotes && <p className={styles.notes}>{enemy.notes}</p>}
-                                                                                </div>
-                                                                        </details>
-                                                                )}
-                                                                <button
-                                                                        type='button'
-                                                                        className={styles.removeButton}
-                                                                        onClick={() => removeEnemy(enemy.id)}>
-                                                                        Remove
-								</button>
+						return (
+							<li key={enemy.id} className={styles.card}>
+								<div className={styles.cardHeader}>
+									<div className={styles.cardBrow}>
+										<h3>{enemy.name}</h3>
+										<button
+											type='button'
+											className={styles.removeButton}
+											onClick={() => removeEnemy(enemy.id)}>
+											Remove
+										</button>
+									</div>
+									<p className={styles.statLine}>
+										Initiative: <strong>{enemy.initiative}</strong>
+									</p>
+									{hasSummaryStats && (
+										<div className={styles.statSummary}>
+											{armorClass && (
+												<p>
+													<span>AC:</span> <strong>{armorClass}</strong>
+												</p>
+											)}
+											{hitPoints && (
+												<p>
+													<span>HP:</span> <strong>{hitPoints}</strong>
+												</p>
+											)}
+										</div>
+									)}
+								</div>
+
+								{hasDetails && (
+									<details className={styles.enemyDetails}>
+										<summary>View Details</summary>
+										<div className={styles.statBlock}>
+											{speed && (
+												<p>
+													<span>Speed:</span> {speed}
+												</p>
+											)}
+											{hasAbilityScores && (
+												<div>
+													<span>Ability Scores</span>
+													<div className={styles.abilityScoreList}>
+														{ABILITY_SCORE_CONFIG.map(({ key, label }) => {
+															const formattedScore = formatAbilityScoreDisplay(
+																abilityScores?.[key]
+															);
+															return (
+																<div
+																	key={`${enemy.id}-${key}`}
+																	className={styles.abilityScoreListItem}>
+																	<span>{label}</span>
+																	<strong>{formattedScore ?? "--"}</strong>
+																</div>
+															);
+														})}
+													</div>
+												</div>
+											)}
+											{formattedActions.length > 0 && (
+												<div className={styles.attackList}>
+													<h4>Actions</h4>
+													<ul>
+														{formattedActions.map((action) => (
+															<li key={action.key}>
+																{action.name && <strong>{action.name}</strong>}
+																{action.description && (
+																	<p>{action.description}</p>
+																)}
+															</li>
+														))}
+													</ul>
+												</div>
+											)}
+											{/* {hasNotes && (
+												<p className={styles.notes}>{enemy.notes}</p>
+											)} */}
+										</div>
+									</details>
+								)}
 							</li>
 						);
 					})}

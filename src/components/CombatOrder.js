@@ -11,11 +11,11 @@ const STATUS_OPTIONS = [...BASE_STATUS_OPTIONS, ...STATUS_CONDITION_OPTIONS];
 const CONCENTRATION_BADGE_LABEL = "Concentration";
 
 const STATUS_LABELS = STATUS_OPTIONS.reduce(
-        (accumulator, option) => {
-                accumulator[option.value] = option.label;
-                return accumulator;
-        },
-        { concentrating: CONCENTRATION_BADGE_LABEL }
+	(accumulator, option) => {
+		accumulator[option.value] = option.label;
+		return accumulator;
+	},
+	{ concentrating: CONCENTRATION_BADGE_LABEL }
 );
 
 const CombatOrder = ({
@@ -67,31 +67,31 @@ const CombatOrder = ({
 					disabled={combatOrder.length === 0}>
 					Reset to Top
 				</button>
-                                <button
-                                        type='button'
-                                        className={styles.secondaryButton}
-                                        onClick={refreshDndBeyondHitPoints}
-                                        disabled={
-                                                isRefreshingDndBeyondHp ||
-                                                !hasDndBeyondMembers ||
-                                                combatOrder.length === 0
-                                        }>
-                                        {isRefreshingDndBeyondHp ? "Refreshing..." : "Refresh"}
-                                </button>
+				<button
+					type='button'
+					className={styles.secondaryButton}
+					onClick={refreshDndBeyondHitPoints}
+					disabled={
+						isRefreshingDndBeyondHp ||
+						!hasDndBeyondMembers ||
+						combatOrder.length === 0
+					}>
+					{isRefreshingDndBeyondHp ? "Refreshing..." : "Refresh"}
+				</button>
 			</div>
 			{concentrationReminder ? (
 				<div className={styles.concentrationReminder}>
 					<div className={styles.concentrationReminderContent}>
 						<strong>Round {concentrationReminder.round} complete.</strong> Roll
 						to maintain concentration for{" "}
-                                                {concentrationReminder.combatants
-                                                        .map((combatant) => {
-                                                                const detailText = combatant.detail
-                                                                        ? ` (${combatant.detail})`
-                                                                        : "";
-                                                                return `${combatant.name} – ${CONCENTRATION_BADGE_LABEL}${detailText}`;
-                                                        })
-                                                        .join(", ")}
+						{concentrationReminder.combatants
+							.map((combatant) => {
+								const detailText = combatant.detail
+									? ` (${combatant.detail})`
+									: "";
+								return `${combatant.name} – ${CONCENTRATION_BADGE_LABEL}${detailText}`;
+							})
+							.join(", ")}
 						.
 					</div>
 					<button
@@ -123,31 +123,29 @@ const CombatOrder = ({
 						const partyHitPointsData = isPartyCombatant
 							? combatant.hitPoints
 							: undefined;
-                                                const combatantStatus = combatStatuses?.[combatant.id] ?? {
-                                                        status: "none",
-                                                        detail: "",
-                                                        concentration: false,
-                                                        concentrationDetail: "",
-                                                };
-                                                const statusValue = combatantStatus.status ?? "none";
-                                                const statusSelectId = `combatant-status-${combatant.id}`;
-                                                const isEditingStatus =
-                                                        !isImportedPartyCombatant &&
-                                                        (statusValue === "none" || statusEditState[combatant.id]);
-                                                const isConcentrating = Boolean(
-                                                        combatantStatus.concentration
-                                                );
-                                                const statusOptions = STATUS_OPTIONS;
-                                                const statusSelectValue =
-                                                        statusValue === "custom" ? "none" : statusValue;
-                                                const statusBadgeLabel =
-                                                        statusValue === "custom"
-                                                                ? combatantStatus.detail?.trim() || "Status"
-                                                                : STATUS_LABELS[statusValue] || "Status";
-                                                const statusBadgeDetail =
-                                                        statusValue === "custom"
-                                                                ? ""
-                                                                : combatantStatus.detail?.trim() || "";
+						const combatantStatus = combatStatuses?.[combatant.id] ?? {
+							status: "none",
+							detail: "",
+							concentration: false,
+							concentrationDetail: "",
+						};
+						const statusValue = combatantStatus.status ?? "none";
+						const statusSelectId = `combatant-status-${combatant.id}`;
+						const isEditingStatus =
+							!isImportedPartyCombatant &&
+							(statusValue === "none" || statusEditState[combatant.id]);
+						const isConcentrating = Boolean(combatantStatus.concentration);
+						const statusOptions = STATUS_OPTIONS;
+						const statusSelectValue =
+							statusValue === "custom" ? "none" : statusValue;
+						const statusBadgeLabel =
+							statusValue === "custom"
+								? combatantStatus.detail?.trim() || "Status"
+								: STATUS_LABELS[statusValue] || "Status";
+						const statusBadgeDetail =
+							statusValue === "custom"
+								? ""
+								: combatantStatus.detail?.trim() || "";
 
 						let partyCurrentValue;
 						if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -308,22 +306,20 @@ const CombatOrder = ({
 											<span className={styles.tag}>
 												{combatant.type === "party" ? "Party" : "Enemy"}
 											</span>
-                                                                                        {statusValue !== "none" ? (
-                                                                                                <span className={styles.statusBadge}>
-                                                                                                        {statusBadgeLabel}
-                                                                                                        {statusBadgeDetail
-                                                                                                                ? ` (${statusBadgeDetail})`
-                                                                                                                : ""}
-                                                                                                </span>
-                                                                                        ) : null}
-                                                                                        {isConcentrating ? (
-                                                                                                <span className={styles.statusBadge}>
-                                                                                                        {CONCENTRATION_BADGE_LABEL}
-                                                                                                        {combatantStatus.concentrationDetail
-                                                                                                                ? ` (${combatantStatus.concentrationDetail})`
-                                                                                                                : ""}
-                                                                                                </span>
-                                                                                        ) : null}
+											{statusValue !== "none" ? (
+												<span className={styles.statusBadge}>
+													{statusBadgeLabel}
+													{statusBadgeDetail ? ` (${statusBadgeDetail})` : ""}
+												</span>
+											) : null}
+											{isConcentrating ? (
+												<span className={styles.statusBadge}>
+													{CONCENTRATION_BADGE_LABEL}
+													{combatantStatus.concentrationDetail
+														? ` (${combatantStatus.concentrationDetail})`
+														: ""}
+												</span>
+											) : null}
 										</h3>
 										<p className={styles.statLine}>
 											Initiative:{" "}
@@ -331,69 +327,65 @@ const CombatOrder = ({
 												{formatInitiativeDisplay(combatant.initiative)}
 											</strong>
 										</p>
-                                                                                <div className={styles.statusSection}>
-                                                                                        <label
-                                                                                                className={styles.concentrationToggle}
-                                                                                                htmlFor={`${statusSelectId}-concentration`}>
-                                                                                                <input
-                                                                                                        id={`${statusSelectId}-concentration`}
-                                                                                                        type='checkbox'
-                                                                                                        className={styles.concentrationToggleInput}
-                                                                                                        checked={isConcentrating}
-                                                                                                onChange={(event) => {
-                                                                                                        handleCombatStatusChange(
-                                                                                                                combatant.id,
-                                                                                                                {
-                                                                                                                        concentration: event.target.checked,
-                                                                                                                }
-                                                                                                        );
-                                                                                                }}
-                                                                                                />
-                                                                                                Concentration
-                                                                                        </label>
-                                                                                        {isImportedPartyCombatant ? null : isEditingStatus ? (
-                                                                                                <>
-                                                                                                        <select
-                                                                                                                id={statusSelectId}
-                                                                                                                className={styles.statusSelect}
-                                                                                                                value={statusSelectValue}
-                                                                                                                onChange={(event) => {
-                                                                                                                        const nextValue = event.target.value;
-                                                                                                                        handleCombatStatusChange(
-                                                                                                                                combatant.id,
-                                                                                                                                { status: nextValue }
-                                                                                                                        );
-                                                                                                                        setStatusEditState((previous) => ({
-                                                                                                                                ...previous,
-                                                                                                                                [combatant.id]: nextValue === "none",
-                                                                                                                        }));
-                                                                                                                }}>
-                                                                                                                {statusOptions.map((option) => (
-                                                                                                                        <option
-                                                                                                                                key={option.value}
-                                                                                                                                value={option.value}
-                                                                                                                                placeholder='Status Condition'>
-                                                                                                                                {option.label}
-                                                                                                                        </option>
-                                                                                                                ))}
-                                                                                                        </select>
-                                                                                                </>
-                                                                                        ) : (
-                                                                                                <>
-                                                                                                        <button
-                                                                                                                type='button'
-                                                                                                                className={styles.changeStatusButton}
-                                                                                                                onClick={() =>
-                                                                                                                        setStatusEditState((previous) => ({
-                                                                                                                                ...previous,
-                                                                                                                                [combatant.id]: true,
-                                                                                                                        }))
-                                                                                                                }>
-                                                                                                                Change Status
-                                                                                                        </button>
-                                                                                                </>
-                                                                                        )}
-                                                                                </div>
+										<div className={styles.statusSection}>
+											<label
+												className={styles.concentrationToggle}
+												htmlFor={`${statusSelectId}-concentration`}>
+												Concentration
+												<input
+													id={`${statusSelectId}-concentration`}
+													type='checkbox'
+													className={styles.concentrationToggleInput}
+													checked={isConcentrating}
+													onChange={(event) => {
+														handleCombatStatusChange(combatant.id, {
+															concentration: event.target.checked,
+														});
+													}}
+												/>
+											</label>
+											{isImportedPartyCombatant ? null : isEditingStatus ? (
+												<>
+													<select
+														id={statusSelectId}
+														className={styles.statusSelect}
+														value={statusSelectValue}
+														onChange={(event) => {
+															const nextValue = event.target.value;
+															handleCombatStatusChange(combatant.id, {
+																status: nextValue,
+															});
+															setStatusEditState((previous) => ({
+																...previous,
+																[combatant.id]: nextValue === "none",
+															}));
+														}}>
+														{statusOptions.map((option) => (
+															<option
+																key={option.value}
+																value={option.value}
+																placeholder='Status Condition'>
+																{option.label}
+															</option>
+														))}
+													</select>
+												</>
+											) : (
+												<>
+													<button
+														type='button'
+														className={styles.changeStatusButton}
+														onClick={() =>
+															setStatusEditState((previous) => ({
+																...previous,
+																[combatant.id]: true,
+															}))
+														}>
+														Change Status
+													</button>
+												</>
+											)}
+										</div>
 									</div>
 									{shouldRenderVitals && (
 										<div className={styles.combatantVitals}>

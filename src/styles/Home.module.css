@@ -334,7 +334,6 @@
 	border: 1px solid rgba(224, 185, 112, 0.12);
 	padding: 20px;
 	display: grid;
-	grid-template-columns: 1fr auto;
 	gap: 12px;
 	align-items: start;
 }
@@ -363,7 +362,7 @@
 	border-radius: 999px;
 	background: rgba(224, 185, 112, 0.15);
 	color: #f3d8aa;
-	font-size: 0.85rem;
+	font-size: 0.75rem;
 	font-weight: 600;
 	letter-spacing: 0.04em;
 	text-transform: uppercase;
@@ -377,66 +376,71 @@
 }
 
 .cardHeader {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.cardBrow {
+	display: flex;
+	justify-content: space-between;
 }
 
 .statSummary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
-        color: rgba(246, 239, 227, 0.85);
+	display: flex;
+	flex-wrap: wrap;
+	gap: 12px;
+	color: rgba(246, 239, 227, 0.85);
 }
 
 .statSummary span {
-        font-weight: 600;
-        color: #d4a373;
+	font-weight: 600;
+	color: #d4a373;
 }
 
 .statLine {
-        margin: 0;
-        color: rgba(246, 239, 227, 0.75);
-        font-size: 0.95rem;
-        margin-bottom: 4px;
+	margin: 0;
+	color: rgba(246, 239, 227, 0.75);
+	font-size: 0.95rem;
+	margin-bottom: 4px;
 }
 
 .enemyDetails {
-        margin-top: 12px;
+	margin-top: 12px;
 }
 
 .enemyDetails > summary {
-        cursor: pointer;
-        font-weight: 600;
-        color: #f2c57c;
-        list-style: none;
-        outline: none;
+	cursor: pointer;
+	font-weight: 600;
+	color: #f2c57c;
+	list-style: none;
+	outline: none;
 }
 
 .enemyDetails[open] > summary {
-        margin-bottom: 12px;
+	margin-bottom: 12px;
 }
 
 .enemyDetails > summary::-webkit-details-marker {
-        display: none;
+	display: none;
 }
 
 .enemyDetails > summary::before {
-        content: "▸";
-        display: inline-block;
-        margin-right: 8px;
-        transition: transform 0.2s ease;
+	content: "▸";
+	display: inline-block;
+	margin-right: 8px;
+	transition: transform 0.2s ease;
 }
 
 .enemyDetails[open] > summary::before {
-        transform: rotate(90deg);
+	transform: rotate(90deg);
 }
 
 .statBlock {
-        grid-column: 1 / -1;
-        display: grid;
-        gap: 8px;
-        color: rgba(246, 239, 227, 0.85);
+	grid-column: 1 / -1;
+	display: grid;
+	gap: 8px;
+	color: rgba(246, 239, 227, 0.85);
 }
 
 .statBlock span {
@@ -793,6 +797,7 @@
 	transition: border-color 0.2s ease, transform 0.2s ease;
 	min-width: 160px;
 	max-width: 200px;
+	margin-top: 8px;
 }
 
 .statusSelect:focus {
@@ -825,32 +830,33 @@
 	font-weight: 600;
 	padding: 6px 12px;
 	cursor: pointer;
+	margin-top: 8px;
 	transition: border-color 0.2s ease, background-color 0.2s ease,
 		transform 0.2s ease;
 }
 
 .changeStatusButton:hover,
 .changeStatusButton:focus-visible {
-        border-color: #d4a373;
-        background: rgba(212, 163, 115, 0.22);
-        transform: translateY(-1px);
-        outline: none;
+	border-color: #d4a373;
+	background: rgba(212, 163, 115, 0.22);
+	transform: translateY(-1px);
+	outline: none;
 }
 
 .concentrationToggle {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #f6efe3;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	font-size: 0.9rem;
+	font-weight: 600;
+	color: #f6efe3;
 }
 
 .concentrationToggleInput {
-        width: 18px;
-        height: 18px;
-        accent-color: #d4a373;
-        cursor: pointer;
+	width: 18px;
+	height: 18px;
+	accent-color: #d4a373;
+	cursor: pointer;
 }
 
 .combatantVitals {

@@ -31,12 +31,17 @@ const PartyMembers = ({
 					{partyMembers.map((member) => (
 						<li key={member.id} className={styles.card}>
 							<div>
-								<h3>{member.name}</h3>
-								{member.source === "dndbeyond" && (
-									<span className={styles.sourceTag}>
-										Imported from D&amp;D Beyond
-									</span>
-								)}
+								<div className={styles.cardBrow}>
+									<div className={styles.cardBrow2}>
+										<h3>{member.name}</h3>
+									</div>
+									<button
+										type='button'
+										className={styles.removeButton}
+										onClick={() => removePartyMember(member.id)}>
+										Remove
+									</button>
+								</div>
 								{member.classSummary && (
 									<p className={styles.statLine}>
 										Class: <strong>{member.classSummary}</strong>
@@ -46,6 +51,9 @@ const PartyMembers = ({
 									<p className={styles.statLine}>
 										Level: <strong>{member.level}</strong>
 									</p>
+								)}
+								{member.source === "dndbeyond" && (
+									<span className={styles.sourceTag}>D&amp;D Beyond</span>
 								)}
 								{member.playerName && (
 									<p className={styles.statLine}>
@@ -63,7 +71,6 @@ const PartyMembers = ({
 								{member.source === "dndbeyond" ? (
 									<label
 										className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
-										<span>Initiative: </span>
 										<input
 											type='number'
 											inputMode='numeric'
@@ -129,12 +136,6 @@ const PartyMembers = ({
 									</details>
 								)}
 							</div>
-							<button
-								type='button'
-								className={styles.removeButton}
-								onClick={() => removePartyMember(member.id)}>
-								Remove
-							</button>
 						</li>
 					))}
 				</ul>
