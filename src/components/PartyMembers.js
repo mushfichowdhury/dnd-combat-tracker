@@ -1,14 +1,91 @@
 import styles from "@/styles/Home.module.css";
 import {
-	formatInitiativeDisplay,
-	formatManualPartyHitPoints,
+        formatAbilityScoreDisplay,
+        formatInitiativeDisplay,
+        formatManualPartyHitPoints,
 } from "@/lib/combatFormatting";
 import { isValidInitiativeInput } from "@/lib/initiativeValidation";
 
+const renderAbilityScores = (member) => {
+        if (
+                !member ||
+                !Array.isArray(member.abilityScores) ||
+                member.abilityScores.length === 0
+        ) {
+                return null;
+        }
+
+        const items = member.abilityScores
+                .map((ability, index) => {
+                        const abilityName =
+                                typeof ability?.name === "string" && ability.name.trim()
+                                        ? ability.name.trim()
+                                        : "Ability";
+
+                        const rawScore =
+                                ability?.score ??
+                                ability?.total ??
+                                ability?.value ??
+                                ability?.base ??
+                                null;
+
+                        let formattedScore = formatAbilityScoreDisplay(rawScore);
+
+                        if (
+                                !formattedScore &&
+                                typeof rawScore === "number" &&
+                                Number.isFinite(rawScore)
+                        ) {
+                                formattedScore = String(rawScore);
+                        }
+
+                        if (!formattedScore && Number.isFinite(ability?.modifier)) {
+                                const sign = ability.modifier >= 0 ? "+" : "";
+                                formattedScore = `${sign}${ability.modifier}`;
+                        }
+
+                        if (!formattedScore && typeof rawScore === "string") {
+                                const trimmed = rawScore.trim();
+
+                                if (trimmed) {
+                                        formattedScore = trimmed;
+                                }
+                        }
+
+                        if (!formattedScore) {
+                                return null;
+                        }
+
+                        return (
+                                <div
+                                        key={
+                                                ability?.id ??
+                                                `${member.id ?? "member"}-ability-${index}`
+                                        }
+                                        className={styles.abilityScoreListItem}>
+                                        <span>{abilityName}</span>
+                                        <strong>{formattedScore}</strong>
+                                </div>
+                        );
+                })
+                .filter(Boolean);
+
+        if (items.length === 0) {
+                return null;
+        }
+
+        return (
+                <div>
+                        <span>Ability Scores</span>
+                        <div className={styles.abilityScoreList}>{items}</div>
+                </div>
+        );
+};
+
 const PartyMembers = ({
-	partyMembers,
-	partyForm,
-	setPartyForm,
+        partyMembers,
+        partyForm,
+        setPartyForm,
 	handlePartySubmit,
 	handleDndBeyondImport,
 	handleDndBeyondCampaignImport,
@@ -28,118 +105,89 @@ const PartyMembers = ({
 			</p>
 			{partyMembers.length > 0 && (
 				<ul className={styles.cardList}>
-					{partyMembers.map((member) => (
-						<li key={member.id} className={styles.card}>
-							<div>
-								<div className={styles.cardBrow}>
-									<div className={styles.cardBrow2}>
-										<h3>{member.name}</h3>
-									</div>
-									<button
-										type='button'
-										className={styles.removeButton}
-										onClick={() => removePartyMember(member.id)}>
-										Remove
-									</button>
-								</div>
-								{member.classSummary && (
-									<p className={styles.statLine}>
-										Class: <strong>{member.classSummary}</strong>
-									</p>
-								)}
-								{typeof member.level === "number" && member.level > 0 && (
-									<p className={styles.statLine}>
-										Level: <strong>{member.level}</strong>
-									</p>
-								)}
-								{member.source === "dndbeyond" && (
-									<span className={styles.sourceTag}>D&amp;D Beyond</span>
-								)}
-								{member.playerName && (
-									<p className={styles.statLine}>
-										Player: <strong>{member.playerName}</strong>
-									</p>
-								)}
-								{member.source !== "dndbeyond" && member.hitPoints && (
-									<p className={styles.statLine}>
-										Hit Points:{" "}
-										<strong>
-											{formatManualPartyHitPoints(member.hitPoints)}
-										</strong>
-									</p>
-								)}
-								{member.source === "dndbeyond" ? (
-									<label
-										className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
-										<input
-											type='number'
-											inputMode='numeric'
-											className={styles.initiativeInput}
-											value={member.initiative ?? ""}
-											onChange={(event) => {
-												const { value } = event.target;
+                                        {partyMembers.map((member) => {
+                                                const abilityScoresContent = renderAbilityScores(member);
 
-												if (!isValidInitiativeInput(value)) {
-													return;
-												}
+                                                return (
+                                                        <li key={member.id} className={styles.card}>
+                                                                <div>
+                                                                        <div className={styles.cardBrow}>
+                                                                                <div className={styles.cardBrow2}>
+                                                                                        <h3>{member.name}</h3>
+                                                                                </div>
+                                                                                <button
+                                                                                        type='button'
+                                                                                        className={styles.removeButton}
+                                                                                        onClick={() => removePartyMember(member.id)}>
+                                                                                        Remove
+                                                                                </button>
+                                                                        </div>
+                                                                        {member.classSummary && (
+                                                                                <p className={styles.statLine}>
+                                                                                        Class: <strong>{member.classSummary}</strong>
+                                                                                </p>
+                                                                        )}
+                                                                        {typeof member.level === "number" && member.level > 0 && (
+                                                                                <p className={styles.statLine}>
+                                                                                        Level: <strong>{member.level}</strong>
+                                                                                </p>
+                                                                        )}
+                                                                        {member.source === "dndbeyond" && (
+                                                                                <span className={styles.sourceTag}>D&amp;D Beyond</span>
+                                                                        )}
+                                                                        {member.playerName && (
+                                                                                <p className={styles.statLine}>
+                                                                                        Player: <strong>{member.playerName}</strong>
+                                                                                </p>
+                                                                        )}
+                                                                        {member.source !== "dndbeyond" && member.hitPoints && (
+                                                                                <p className={styles.statLine}>
+                                                                                        Hit Points:{" "}
+                                                                                        <strong>
+                                                                                                {formatManualPartyHitPoints(member.hitPoints)}
+                                                                                        </strong>
+                                                                                </p>
+                                                                        )}
+                                                                        {member.source === "dndbeyond" ? (
+                                                                                <label
+                                                                                        className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
+                                                                                        <input
+                                                                                                type='number'
+                                                                                                inputMode='numeric'
+                                                                                                className={styles.initiativeInput}
+                                                                                                value={member.initiative ?? ""}
+                                                                                                onChange={(event) => {
+                                                                                                        const { value } = event.target;
 
-												handleImportedInitiativeChange(member.id, value);
-											}}
-											placeholder='Enter initiative'
-										/>
-									</label>
-								) : (
-									<p className={styles.statLine}>
-										Initiative:{" "}
-										<strong>
-											{formatInitiativeDisplay(member.initiative)}
-										</strong>
-									</p>
-								)}
-								{member.source === "dndbeyond" && (
-									<details className={styles.statsDropdown}>
-										<summary className={styles.dropdownSummary}>
-											View Stats
-										</summary>
-										<div className={styles.statsContent}>
-											{Array.isArray(member.abilityScores) &&
-												member.abilityScores.length > 0 && (
-													<div>
-														<h4 className={styles.statsHeading}>
-															Ability Scores
-														</h4>
-														<ul className={styles.abilityGrid}>
-															{member.abilityScores.map((ability) => (
-																<li
-																	key={ability.id}
-																	className={styles.abilityCell}>
-																	<div className={styles.abilityNameGroup}>
-																		<span className={styles.abilityName}>
-																			{ability.name || "Ability"}
-																		</span>
-																	</div>
-																	<div className={styles.abilityScoreGroup}>
-																		<span className={styles.abilityScore}>
-																			{Number.isFinite(ability.total)
-																				? ability.total
-																				: Number.isFinite(ability.score)
-																				? ability.score
-																				: "--"}
-																		</span>
-																	</div>
-																</li>
-															))}
-														</ul>
-													</div>
-												)}
-										</div>
-									</details>
-								)}
-							</div>
-						</li>
-					))}
-				</ul>
-			)}
+                                                                                                        if (!isValidInitiativeInput(value)) {
+                                                                                                                return;
+                                                                                                        }
+
+                                                                                                        handleImportedInitiativeChange(member.id, value);
+                                                                                                }}
+                                                                                                placeholder='Enter initiative'
+                                                                                        />
+                                                                                </label>
+                                                                        ) : (
+                                                                                <p className={styles.statLine}>
+                                                                                        Initiative:{" "}
+                                                                                        <strong>
+                                                                                                {formatInitiativeDisplay(member.initiative)}
+                                                                                        </strong>
+                                                                                </p>
+                                                                        )}
+                                                                        {member.source === "dndbeyond" && abilityScoresContent && (
+                                                                                <details className={styles.enemyDetails}>
+                                                                                        <summary>View Stats</summary>
+                                                                                        <div className={styles.statBlock}>{abilityScoresContent}</div>
+                                                                                </details>
+                                                                        )}
+                                                                </div>
+                                                        </li>
+                                                );
+                                        })}
+                                </ul>
+                        )}
 			{partyMembers.length > 0 ? <hr className={styles.lineBreak} /> : <></>}
 			<div className={styles.importBox}>
 				<h3>Import from D&amp;D Beyond</h3>
