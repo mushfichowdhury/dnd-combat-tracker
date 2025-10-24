@@ -1192,3 +1192,8 @@
 	border: 0;
 	border-top: 2px solid #d6c3a1;
 }
+
+.elipsesBreak {
+	align-self: center;
+	color: #d6c3a1;
+}

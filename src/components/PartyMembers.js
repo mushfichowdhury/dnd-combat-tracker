@@ -63,7 +63,7 @@ const PartyMembers = ({
 								{member.source === "dndbeyond" ? (
 									<label
 										className={`${styles.inputGroup} ${styles.initiativeEditor}`}>
-										<span>Initiative</span>
+										<span>Initiative: </span>
 										<input
 											type='number'
 											inputMode='numeric'
@@ -148,7 +148,7 @@ const PartyMembers = ({
 					importing.
 				</p>
 				<form onSubmit={handleDndBeyondImport} className={styles.importForm}>
-					<label className={styles.inputGroup}>
+					<label className={styles.inputGroup} style={{ width: "100%" }}>
 						<input
 							type='text'
 							value={dndBeyondIdentifier}
@@ -179,6 +179,10 @@ const PartyMembers = ({
 					</div>
 				</form>
 			</div>
+			<h3 className={styles.elipsesBreak}>. . .</h3>
+			<p className={styles.sectionDescription}>
+				No D&D Beyond character? No problem. Add a custom player or NPC here.
+			</p>
 			<form onSubmit={handlePartySubmit} className={styles.form}>
 				<div className={styles.formGrid}>
 					<label className={styles.inputGroup}>

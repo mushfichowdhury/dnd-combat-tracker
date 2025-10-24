@@ -411,22 +411,22 @@ const readErrorPayload = async (response) => {
 const buildCharacterSummary = (characterId, character) => {
 	const initiative = calculateInitiative(character);
 	const classes = mapClasses(character.classes);
-        const level = classes.reduce((total, current) => total + current.level, 0);
-        const abilityScores = mapAbilityScores(character);
-        const hitPoints = calculateHitPoints(character);
-        const conditions = mapCharacterConditions(character.conditions);
+	const level = classes.reduce((total, current) => total + current.level, 0);
+	const abilityScores = mapAbilityScores(character);
+	const hitPoints = calculateHitPoints(character);
+	const conditions = mapCharacterConditions(character.conditions);
 
-        return {
-                id: characterId,
-                name: character.name,
-                initiative,
-                classes,
-                level,
-                playerName: character.preferences?.playerName ?? null,
-                abilityScores,
-                hitPoints,
-                conditions,
-        };
+	return {
+		id: characterId,
+		name: character.name,
+		initiative,
+		classes,
+		level,
+		playerName: character.preferences?.playerName ?? null,
+		abilityScores,
+		hitPoints,
+		conditions,
+	};
 };
 
 const buildCharacterError = (response, parsedError) => {
