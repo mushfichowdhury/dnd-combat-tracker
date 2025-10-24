@@ -5,17 +5,21 @@ import { formatInitiativeDisplay } from "@/lib/combatFormatting";
 import { STATUS_CONDITION_OPTIONS } from "@/lib/statusConditions";
 
 const BASE_STATUS_OPTIONS = [
-        { value: "none", label: "Status / Concentration" },
-        { value: "concentrating", label: "Concentrating" },
+        { value: "none", label: "Status Condition" },
         { value: "custom", label: "Custom" },
 ];
 
 const STATUS_OPTIONS = [...BASE_STATUS_OPTIONS, ...STATUS_CONDITION_OPTIONS];
 
-const STATUS_LABELS = STATUS_OPTIONS.reduce((accumulator, option) => {
-	accumulator[option.value] = option.label;
-	return accumulator;
-}, {});
+const CONCENTRATION_BADGE_LABEL = "Concentration";
+
+const STATUS_LABELS = STATUS_OPTIONS.reduce(
+        (accumulator, option) => {
+                accumulator[option.value] = option.label;
+                return accumulator;
+        },
+        { concentrating: CONCENTRATION_BADGE_LABEL }
+);
 
 const CombatOrder = ({
 	combatOrder,
@@ -83,15 +87,14 @@ const CombatOrder = ({
 					<div className={styles.concentrationReminderContent}>
 						<strong>Round {concentrationReminder.round} complete.</strong> Roll
 						to maintain concentration for{" "}
-						{concentrationReminder.combatants
-							.map((combatant) => {
-								const label = STATUS_LABELS[combatant.status] || "Status";
-								const detailText = combatant.detail
-									? ` (${combatant.detail})`
-									: "";
-								return `${combatant.name} – ${label}${detailText}`;
-							})
-							.join(", ")}
+                                                {concentrationReminder.combatants
+                                                        .map((combatant) => {
+                                                                const detailText = combatant.detail
+                                                                        ? ` (${combatant.detail})`
+                                                                        : "";
+                                                                return `${combatant.name} – ${CONCENTRATION_BADGE_LABEL}${detailText}`;
+                                                        })
+                                                        .join(", ")}
 						.
 					</div>
 					<button
@@ -123,16 +126,20 @@ const CombatOrder = ({
 						const partyHitPointsData = isPartyCombatant
 							? combatant.hitPoints
 							: undefined;
-						const combatantStatus = combatStatuses?.[combatant.id] ?? {
-							status: "none",
-							detail: "",
-						};
-						const statusValue = combatantStatus.status ?? "none";
-						const statusSelectId = `combatant-status-${combatant.id}`;
+                                                const combatantStatus = combatStatuses?.[combatant.id] ?? {
+                                                        status: "none",
+                                                        detail: "",
+                                                        concentration: false,
+                                                        concentrationDetail: "",
+                                                };
+                                                const statusValue = combatantStatus.status ?? "none";
+                                                const statusSelectId = `combatant-status-${combatant.id}`;
                                                 const isEditingStatus =
                                                         !isImportedPartyCombatant &&
                                                         (statusValue === "none" || statusEditState[combatant.id]);
-                                                const isConcentrating = statusValue === "concentrating";
+                                                const isConcentrating = Boolean(
+                                                        combatantStatus.concentration
+                                                );
 
 						let partyCurrentValue;
 						if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -301,6 +308,14 @@ const CombatOrder = ({
                                                                                                                 : ""}
                                                                                                 </span>
                                                                                         ) : null}
+                                                                                        {isConcentrating ? (
+                                                                                                <span className={styles.statusBadge}>
+                                                                                                        {CONCENTRATION_BADGE_LABEL}
+                                                                                                        {combatantStatus.concentrationDetail
+                                                                                                                ? ` (${combatantStatus.concentrationDetail})`
+                                                                                                                : ""}
+                                                                                                </span>
+                                                                                        ) : null}
 										</h3>
 										<p className={styles.statLine}>
 											Initiative:{" "}
@@ -309,23 +324,26 @@ const CombatOrder = ({
 											</strong>
 										</p>
                                                                                 <div className={styles.statusSection}>
-                                                                                        {isImportedPartyCombatant ? (
-                                                                                                <label className={styles.concentrationToggle} htmlFor={`${statusSelectId}-concentration`}>
-                                                                                                        <input
-                                                                                                                id={`${statusSelectId}-concentration`}
-                                                                                                                type='checkbox'
-                                                                                                                className={styles.concentrationToggleInput}
-                                                                                                                checked={isConcentrating}
-                                                                                                                onChange={(event) => {
-                                                                                                                        handleCombatStatusChange(
-                                                                                                                                combatant.id,
-                                                                                                                                event.target.checked ? "concentrating" : "none",
-                                                                                                                        );
-                                                                                                                }}
-                                                                                                        />
-                                                                                                        Concentration
-                                                                                                </label>
-                                                                                        ) : isEditingStatus ? (
+                                                                                        <label
+                                                                                                className={styles.concentrationToggle}
+                                                                                                htmlFor={`${statusSelectId}-concentration`}>
+                                                                                                <input
+                                                                                                        id={`${statusSelectId}-concentration`}
+                                                                                                        type='checkbox'
+                                                                                                        className={styles.concentrationToggleInput}
+                                                                                                        checked={isConcentrating}
+                                                                                                onChange={(event) => {
+                                                                                                        handleCombatStatusChange(
+                                                                                                                combatant.id,
+                                                                                                                {
+                                                                                                                        concentration: event.target.checked,
+                                                                                                                }
+                                                                                                        );
+                                                                                                }}
+                                                                                                />
+                                                                                                Concentration
+                                                                                        </label>
+                                                                                        {isImportedPartyCombatant ? null : isEditingStatus ? (
                                                                                                 <>
                                                                                                         <select
                                                                                                                 id={statusSelectId}
@@ -333,7 +351,10 @@ const CombatOrder = ({
                                                                                                                 value={statusValue}
                                                                                                                 onChange={(event) => {
                                                                                                                         const nextValue = event.target.value;
-                                                                                                                        handleCombatStatusChange(combatant.id, nextValue);
+                                                                                                                        handleCombatStatusChange(
+                                                                                                                                combatant.id,
+                                                                                                                                { status: nextValue }
+                                                                                                                        );
                                                                                                                         setStatusEditState((previous) => ({
                                                                                                                                 ...previous,
                                                                                                                                 [combatant.id]: nextValue === "none",
@@ -343,7 +364,7 @@ const CombatOrder = ({
                                                                                                                         <option
                                                                                                                                 key={option.value}
                                                                                                                                 value={option.value}
-                                                                                                                                placeholder='Status / Concentration'>
+                                                                                                                                placeholder='Status Condition'>
                                                                                                                                 {option.label}
                                                                                                                         </option>
                                                                                                                 ))}
