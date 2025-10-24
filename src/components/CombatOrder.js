@@ -129,8 +129,10 @@ const CombatOrder = ({
 						};
 						const statusValue = combatantStatus.status ?? "none";
 						const statusSelectId = `combatant-status-${combatant.id}`;
-						const isEditingStatus =
-							statusValue === "none" || statusEditState[combatant.id];
+                                                const isEditingStatus =
+                                                        !isImportedPartyCombatant &&
+                                                        (statusValue === "none" || statusEditState[combatant.id]);
+                                                const isConcentrating = statusValue === "concentrating";
 
 						let partyCurrentValue;
 						if (partyHitPointsData && typeof partyHitPointsData === "object") {
@@ -306,47 +308,63 @@ const CombatOrder = ({
 												{formatInitiativeDisplay(combatant.initiative)}
 											</strong>
 										</p>
-										<div className={styles.statusSection}>
-											{isEditingStatus ? (
-												<>
-													<select
-														id={statusSelectId}
-														className={styles.statusSelect}
-														value={statusValue}
-														onChange={(event) => {
-															const nextValue = event.target.value;
-															handleCombatStatusChange(combatant.id, nextValue);
-															setStatusEditState((previous) => ({
-																...previous,
-																[combatant.id]: nextValue === "none",
-															}));
-														}}>
-														{STATUS_OPTIONS.map((option) => (
-															<option
-																key={option.value}
-																value={option.value}
-																placeholder='Status / Concentration'>
-																{option.label}
-															</option>
-														))}
-													</select>
-												</>
-											) : (
-												<>
-													<button
-														type='button'
-														className={styles.changeStatusButton}
-														onClick={() =>
-															setStatusEditState((previous) => ({
-																...previous,
-																[combatant.id]: true,
-															}))
-														}>
-														Change Status
-													</button>
-												</>
-											)}
-										</div>
+                                                                                <div className={styles.statusSection}>
+                                                                                        {isImportedPartyCombatant ? (
+                                                                                                <label className={styles.concentrationToggle} htmlFor={`${statusSelectId}-concentration`}>
+                                                                                                        <input
+                                                                                                                id={`${statusSelectId}-concentration`}
+                                                                                                                type='checkbox'
+                                                                                                                className={styles.concentrationToggleInput}
+                                                                                                                checked={isConcentrating}
+                                                                                                                onChange={(event) => {
+                                                                                                                        handleCombatStatusChange(
+                                                                                                                                combatant.id,
+                                                                                                                                event.target.checked ? "concentrating" : "none",
+                                                                                                                        );
+                                                                                                                }}
+                                                                                                        />
+                                                                                                        Concentration
+                                                                                                </label>
+                                                                                        ) : isEditingStatus ? (
+                                                                                                <>
+                                                                                                        <select
+                                                                                                                id={statusSelectId}
+                                                                                                                className={styles.statusSelect}
+                                                                                                                value={statusValue}
+                                                                                                                onChange={(event) => {
+                                                                                                                        const nextValue = event.target.value;
+                                                                                                                        handleCombatStatusChange(combatant.id, nextValue);
+                                                                                                                        setStatusEditState((previous) => ({
+                                                                                                                                ...previous,
+                                                                                                                                [combatant.id]: nextValue === "none",
+                                                                                                                        }));
+                                                                                                                }}>
+                                                                                                                {STATUS_OPTIONS.map((option) => (
+                                                                                                                        <option
+                                                                                                                                key={option.value}
+                                                                                                                                value={option.value}
+                                                                                                                                placeholder='Status / Concentration'>
+                                                                                                                                {option.label}
+                                                                                                                        </option>
+                                                                                                                ))}
+                                                                                                        </select>
+                                                                                                </>
+                                                                                        ) : (
+                                                                                                <>
+                                                                                                        <button
+                                                                                                                type='button'
+                                                                                                                className={styles.changeStatusButton}
+                                                                                                                onClick={() =>
+                                                                                                                        setStatusEditState((previous) => ({
+                                                                                                                                ...previous,
+                                                                                                                                [combatant.id]: true,
+                                                                                                                        }))
+                                                                                                                }>
+                                                                                                                Change Status
+                                                                                                        </button>
+                                                                                                </>
+                                                                                        )}
+                                                                                </div>
 									</div>
 									{shouldRenderVitals && (
 										<div className={styles.combatantVitals}>

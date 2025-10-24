@@ -788,10 +788,26 @@
 
 .changeStatusButton:hover,
 .changeStatusButton:focus-visible {
-	border-color: #d4a373;
-	background: rgba(212, 163, 115, 0.22);
-	transform: translateY(-1px);
-	outline: none;
+        border-color: #d4a373;
+        background: rgba(212, 163, 115, 0.22);
+        transform: translateY(-1px);
+        outline: none;
+}
+
+.concentrationToggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #f6efe3;
+}
+
+.concentrationToggleInput {
+        width: 18px;
+        height: 18px;
+        accent-color: #d4a373;
+        cursor: pointer;
 }
 
 .combatantVitals {
