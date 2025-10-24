@@ -1299,10 +1299,10 @@ export default function Home() {
 		);
 	};
 
-	const refreshDndBeyondHitPoints = async () => {
-		const dndBeyondMembers = partyMembers.filter(
-			(member) => member.source === "dndbeyond" && member.ddbCharacterId
-		);
+        const refreshDndBeyondHitPoints = async () => {
+                const dndBeyondMembers = partyMembers.filter(
+                        (member) => member.source === "dndbeyond" && member.ddbCharacterId
+                );
 
 		if (dndBeyondMembers.length === 0) {
 			return;
@@ -1311,12 +1311,12 @@ export default function Home() {
 		setDndBeyondRefreshError("");
 		setIsRefreshingDndBeyondHp(true);
 
-		try {
-			const updates = [];
+                try {
+                        const updates = [];
 
-			for (const member of dndBeyondMembers) {
-				const response = await fetch("/api/import-dndbeyond", {
-					method: "POST",
+                        for (const member of dndBeyondMembers) {
+                                const response = await fetch("/api/import-dndbeyond", {
+                                        method: "POST",
 					headers: {
 						"Content-Type": "application/json",
 					},
@@ -1337,12 +1337,14 @@ export default function Home() {
 					throw new Error(message);
 				}
 
-				updates.push({ memberId: member.id, data });
-			}
+                                const status = buildStatusFromCharacterConditions(data.conditions);
 
-			setPartyMembers((prev) =>
-				prev.map((member) => {
-					const update = updates.find((entry) => entry.memberId === member.id);
+                                updates.push({ memberId: member.id, data, status });
+                        }
+
+                        setPartyMembers((prev) =>
+                                prev.map((member) => {
+                                        const update = updates.find((entry) => entry.memberId === member.id);
 					if (!update) {
 						return member;
 					}
@@ -1363,18 +1365,32 @@ export default function Home() {
 							Number.isFinite(updatedLevel) && updatedLevel > 0
 								? updatedLevel
 								: member.level,
-						playerName: data.playerName || member.playerName,
-						calculatedInitiative: Number.isFinite(updatedInitiative)
-							? updatedInitiative
-							: member.calculatedInitiative,
-					};
-				})
-			);
-		} catch (error) {
-			console.error(error);
-			setDndBeyondRefreshError(
-				error instanceof Error && error.message
-					? error.message
+                                                playerName: data.playerName || member.playerName,
+                                                calculatedInitiative: Number.isFinite(updatedInitiative)
+                                                        ? updatedInitiative
+                                                        : member.calculatedInitiative,
+                                        };
+                                })
+                        );
+
+                        setCombatStatuses((previousStatuses) => {
+                                const nextStatuses = { ...previousStatuses };
+
+                                updates.forEach(({ memberId, status }) => {
+                                        if (status) {
+                                                nextStatuses[memberId] = status;
+                                        } else if (memberId in nextStatuses) {
+                                                delete nextStatuses[memberId];
+                                        }
+                                });
+
+                                return nextStatuses;
+                        });
+                } catch (error) {
+                        console.error(error);
+                        setDndBeyondRefreshError(
+                                error instanceof Error && error.message
+                                        ? error.message
 					: "Failed to refresh hit points from D&D Beyond."
 			);
 		} finally {
