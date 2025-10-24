@@ -835,47 +835,90 @@
 }
 
 @media (max-width: 768px) {
-	.page {
-		padding: 16px;
-	}
+        .page {
+                padding: 16px;
+        }
 
-	.main {
-		padding: 32px 18px;
-		gap: 36px;
-	}
+        .main {
+                padding: 32px 18px;
+                gap: 36px;
+        }
 
-	.section {
-		padding: 20px;
-	}
+        .section {
+                padding: 20px;
+        }
 
-	.sectionColumns {
-		grid-template-columns: 1fr;
-		gap: 24px;
-	}
+        .sectionColumns {
+                grid-template-columns: 1fr;
+                gap: 24px;
+        }
 
-	.combatControls {
-		flex-direction: column;
-		align-items: stretch;
-	}
+        .combatControls {
+                flex-direction: column;
+                align-items: stretch;
+        }
 
-	.primaryButton,
-	.secondaryButton {
-		width: 100%;
-	}
+        .primaryButton,
+        .secondaryButton {
+                width: 100%;
+        }
 
-	.combatantContent {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 12px;
-	}
+        .combatantContent {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+        }
 
-	.combatantMeta {
-		align-items: flex-start;
-	}
+        .combatant h3 {
+                flex-wrap: wrap;
+                gap: 6px;
+        }
 
-	.currentHp {
-		flex-wrap: wrap;
-	}
+        .combatantMeta {
+                align-items: flex-start;
+        }
+
+        .currentHp {
+                flex-wrap: wrap;
+                justify-content: space-between;
+                gap: 10px;
+                width: 100%;
+        }
+
+        .combatantVitals {
+                width: 100%;
+                align-items: stretch;
+                align-self: stretch;
+                gap: 12px;
+        }
+
+        .currentHpValue {
+                font-size: 1.4rem;
+        }
+
+        .currentHpMax {
+                font-size: 0.85rem;
+        }
+
+        .tempHpNote {
+                align-self: flex-start;
+        }
+
+        .enemyDamageForm {
+                width: 100%;
+        }
+
+        .enemyHpInput {
+                width: 100%;
+                text-align: right;
+                flex: 1;
+                min-width: 0;
+        }
+
+        .enemyDamageInput {
+                flex: 1;
+                min-width: 0;
+        }
 }
 
 @media (prefers-color-scheme: light) {
