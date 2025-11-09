@@ -111,15 +111,16 @@ const CombatOrder = ({
 				</p>
 			) : (
 				<ol className={styles.combatList}>
-					{combatOrder.map((combatant, index) => {
-						const isPartyCombatant = combatant.type === "party";
-						const isImportedPartyCombatant =
-							isPartyCombatant && combatant.source === "dndbeyond";
+                                        {combatOrder.map((combatant, index) => {
+                                                const isPartyCombatant = combatant.type === "party";
+                                                const isEnemyCombatant = combatant.type === "enemy";
+                                                const isImportedPartyCombatant =
+                                                        isPartyCombatant && combatant.source === "dndbeyond";
 						const showImportedPartyHitPoints =
 							isImportedPartyCombatant && combatant.hitPoints;
-						const showManualPartyControls =
-							isPartyCombatant && !isImportedPartyCombatant;
-						const showEnemyHitPoints = combatant.type === "enemy";
+                                                const showManualPartyControls =
+                                                        isPartyCombatant && !isImportedPartyCombatant;
+                                                const showEnemyHitPoints = isEnemyCombatant;
 						const partyHitPointsData = isPartyCombatant
 							? combatant.hitPoints
 							: undefined;
@@ -223,9 +224,27 @@ const CombatOrder = ({
 							}
 						}
 
-						const enemyHitPointsData = showEnemyHitPoints
-							? combatant.hitPoints
-							: undefined;
+                                                const enemyArmorClass = (() => {
+                                                        if (!isEnemyCombatant) {
+                                                                return "";
+                                                        }
+
+                                                        const { armorClass } = combatant;
+
+                                                        if (typeof armorClass === "string") {
+                                                                return armorClass.trim();
+                                                        }
+
+                                                        if (armorClass !== undefined && armorClass !== null) {
+                                                                return String(armorClass);
+                                                        }
+
+                                                        return "";
+                                                })();
+
+                                                const enemyHitPointsData = showEnemyHitPoints
+                                                        ? combatant.hitPoints
+                                                        : undefined;
 						let enemyCurrentValue = "";
 						if (showEnemyHitPoints) {
 							if (
@@ -321,12 +340,17 @@ const CombatOrder = ({
 												</span>
 											) : null}
 										</h3>
-										<p className={styles.statLine}>
-											Initiative:{" "}
-											<strong>
-												{formatInitiativeDisplay(combatant.initiative)}
-											</strong>
-										</p>
+                                                                                <p className={styles.statLine}>
+                                                                                        Initiative:{" "}
+                                                                                        <strong>
+                                                                                                {formatInitiativeDisplay(combatant.initiative)}
+                                                                                        </strong>
+                                                                                </p>
+                                                                                {enemyArmorClass ? (
+                                                                                        <p className={styles.statLine}>
+                                                                                                AC: <strong>{enemyArmorClass}</strong>
+                                                                                        </p>
+                                                                                ) : null}
 										<div className={styles.statusSection}>
 											<label
 												className={styles.concentrationToggle}
